@@ -58,6 +58,7 @@ class Inventory(models.Model):
 
 class Cart(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='carts')
+    status = models.CharField(max_length=30, default='active')
     updated_at = models.DateTimeField(auto_now=True)
 
 
@@ -66,6 +67,17 @@ class CartItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        try:
+            if self.unit_price is not None and self.quantity is not None:
+                self.subtotal = self.unit_price * self.quantity
+        except Exception:
+            pass
+        super().save(*args, **kwargs)
 
 
 class Address(models.Model):
@@ -81,6 +93,7 @@ class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     status = models.CharField(max_length=30, default='created')
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    currency = models.CharField(max_length=8, default='USD')
     created_at = models.DateTimeField(auto_now_add=True)
 
 
@@ -89,6 +102,15 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    def save(self, *args, **kwargs):
+        try:
+            if self.unit_price is not None and self.quantity is not None:
+                self.subtotal = self.unit_price * self.quantity
+        except Exception:
+            pass
+        super().save(*args, **kwargs)
 
 
 class Payment(models.Model):
@@ -97,3 +119,12 @@ class Payment(models.Model):
     status = models.CharField(max_length=30, default='succeeded')  # simulamos éxito
     external_id = models.CharField(max_length=120, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='favorites')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='favorited_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'product')

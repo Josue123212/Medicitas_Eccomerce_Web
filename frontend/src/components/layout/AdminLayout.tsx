@@ -16,7 +16,8 @@ import {
   Shield,
   BarChart3,
   Database,
-  UserCog
+  UserCog,
+  ShoppingCart
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -58,6 +59,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       href: '/admin/dashboard',
       icon: LayoutDashboard,
       current: location.pathname === '/admin/dashboard'
+    },
+    {
+      name: 'E‑commerce',
+      href: '/admin/ecommerce',
+      icon: ShoppingCart,
+      current: location.pathname.startsWith('/admin/ecommerce')
     },
     {
       name: 'Clientes',

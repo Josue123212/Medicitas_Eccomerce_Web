@@ -10,6 +10,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useModal } from '../../components/ui/Modal';
 import FiltersDrawer from '../../components/pharmacy/FiltersDrawer';
 import CategoriesSidebar from '../../components/pharmacy/CategoriesSidebar';
+import CheckoutModal from '../../components/pharmacy/CheckoutModal';
 
 /**
  * 🛒 Catálogo (Autenticado) - Farmacia MediCitas
@@ -75,10 +76,38 @@ const PharmacyCatalogPage: React.FC = () => {
   // Estado local para carrito y favoritos (demostración)
   const [cart, setCart] = useState<{ id: number; qty: number }[]>([]);
   const [favorites, setFavorites] = useState<number[]>([]);
+  const [favoritesData, setFavoritesData] = useState<{ id: number; product: number }[]>([]);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [orders, setOrders] = React.useState<Array<{ id: number; status: string; total: number; currency?: string; created_at: string }>>([]);
+  const [ordersLoading, setOrdersLoading] = React.useState(false);
+  const [ordersError, setOrdersError] = React.useState<string | null>(null);
+
+  const debugAuth = (label?: string) => {
+    try {
+      console.log('[Catalog Debug]', label ?? 'state', { isAuthenticated, user });
+      (window as any).__CATALOG_DEBUG = { isAuthenticated, user };
+    } catch (e) {}
+  };
+
+  React.useEffect(() => {
+    debugAuth('useEffect:init');
+    if (isAuthenticated) {
+      ecommerceService.getFavorites().then((list) => {
+        setFavoritesData(list.map((f: any) => ({ id: f.id, product: Number(f.product) })));
+        setFavorites(list.map((f: any) => Number(f.product)));
+      }).catch(() => {});
+      setOrdersLoading(true);
+      ecommerceService.getOrders()
+        .then((list) => setOrders(list as any))
+        .catch(() => setOrdersError('No se pudo cargar tu historial'))
+        .finally(() => setOrdersLoading(false));
+    }
+  }, [isAuthenticated]);
 
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.qty, 0), [cart]);
 
   const requireAuth = (actionLabel?: string) => {
+    debugAuth('requireAuth');
     toast((t) => (
       <span>
         {actionLabel ? `${actionLabel} requiere iniciar sesión.` : 'Esta acción requiere iniciar sesión.'}
@@ -96,10 +125,12 @@ const PharmacyCatalogPage: React.FC = () => {
   };
 
   const addToCart = (productId: number) => {
+    debugAuth('addToCart');
     if (!isAuthenticated) {
       requireAuth('Agregar al carrito');
       return;
     }
+    ecommerceService.addCartItem(productId, 1).catch(() => {});
     setCart((prev) => {
       const existing = prev.find((p) => p.id === productId);
       if (existing) {
@@ -111,13 +142,24 @@ const PharmacyCatalogPage: React.FC = () => {
   };
 
   const toggleFavorite = (productId: number) => {
+    debugAuth('toggleFavorite');
     if (!isAuthenticated) {
       requireAuth('Favoritos');
       return;
     }
-    setFavorites((prev) =>
-      prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
-    );
+    const fav = favoritesData.find((f) => f.product === productId);
+    if (fav) {
+      ecommerceService.removeFavorite(fav.id).catch(() => {});
+      setFavorites((prev) => prev.filter((id) => id !== productId));
+      setFavoritesData((prev) => prev.filter((f) => f.product !== productId));
+    } else {
+      ecommerceService.addFavorite(productId).then((created: any) => {
+        if (created?.id) {
+          setFavoritesData((prev) => [...prev, { id: created.id, product: productId }]);
+        }
+      }).catch(() => {});
+      setFavorites((prev) => [...prev, productId]);
+    }
     toast.success('Actualizado en favoritos');
   };
 
@@ -134,15 +176,26 @@ const PharmacyCatalogPage: React.FC = () => {
     toast.success(`Compra simulada de "${product.name}" iniciada`);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      // Cerrar sesión y limpiar estados locales del catálogo
-      logout();
+      if (isAuthenticated) {
+        try { await ecommerceService.clearCart(); } catch {}
+      }
+      await logout();
       setCart([]);
       setFavorites([]);
     } catch (error) {
       console.error('Error al cerrar sesión desde farmacia:', error);
     }
+  };
+
+  const openCheckout = () => {
+    debugAuth('openCheckout');
+    if (!isAuthenticated) {
+      requireAuth('Pagar');
+      return;
+    }
+    setCheckoutOpen(true);
   };
 
   return (
@@ -173,6 +226,11 @@ const PharmacyCatalogPage: React.FC = () => {
             <Link to="/pharmacy">
               <button className="btn-outline px-3 py-2 rounded-lg font-medium transition-colors">← Información</button>
             </Link>
+            {isAuthenticated && (
+              <Link to="/pharmacy/orders">
+                <button className="btn-outline px-3 py-2 rounded-lg font-medium transition-colors">Historial</button>
+              </Link>
+            )}
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
               <span className="material-icons" style={{ fontSize: 18, color: 'var(--text-secondary)' }}>shopping_cart</span>
               <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Carrito</span>
@@ -421,8 +479,51 @@ const PharmacyCatalogPage: React.FC = () => {
             </div>
           )}
         </div>
+        {isAuthenticated && (
+          <section aria-label="Historial de compra" className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-light" style={{ color: 'var(--text-primary)' }}>Historial de compra</h3>
+              <Link to="/pharmacy/orders">
+                <button className="btn-outline px-3 py-2 rounded-md text-sm">Ver todo</button>
+              </Link>
+            </div>
+            {ordersLoading && (
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Cargando historial…</p>
+            )}
+            {ordersError && (
+              <p className="text-sm text-red-600">{ordersError}</p>
+            )}
+            {!ordersLoading && !ordersError && (
+              <div className="space-y-3">
+                {orders.slice(0, 3).map((o) => (
+                  <div key={o.id} className="flex items-center justify-between p-4 rounded-lg" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
+                    <div>
+                      <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Orden #{o.id}</div>
+                      <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Estado: {o.status}</div>
+                      <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Fecha: {new Date(o.created_at).toLocaleString()}</div>
+                    </div>
+                    <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                      {new Intl.NumberFormat('es-ES', { style: 'currency', currency: o.currency || 'USD' }).format(Number(o.total))}
+                    </div>
+                  </div>
+                ))}
+                {orders.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Aún no tienes compras registradas.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+        {isAuthenticated && cartCount > 0 && (
+          <div className="mt-4 flex justify-center">
+            <button className="btn-primary px-4 py-2 rounded-lg" onClick={openCheckout}>Pagar carrito</button>
+          </div>
+        )}
       </main>
 
+      
       {/* Footer */}
       <footer className="bg-white py-8" style={{ borderTop: '1px solid var(--border)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -434,6 +535,34 @@ const PharmacyCatalogPage: React.FC = () => {
 
       {/* Botón flotante para agendar nueva cita (solo clientes) */}
       {isAuthenticated && <FloatingAppointmentCTA />}
+      <button
+        onClick={() => navigate('/pharmacy/cart')}
+        className="fixed z-50 rounded-full shadow-lg flex items-center justify-center"
+        style={{
+          bottom: 24,
+          right: 24,
+          width: 56,
+          height: 56,
+          background: 'linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary), black 25%))',
+          color: 'var(--text-on-primary)'
+        }}
+        aria-label="Ir a pedidos"
+      >
+        <span className="material-icons" style={{ fontSize: 24 }}>shopping_cart</span>
+        {cartCount > 0 && (
+          <span
+            className="absolute -top-1 -right-1 text-xs px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: 'var(--surface)', color: 'var(--primary)', border: '1px solid var(--primary)' }}
+          >
+            {cartCount}
+          </span>
+        )}
+      </button>
+      <CheckoutModal isOpen={checkoutOpen} onClose={() => setCheckoutOpen(false)} onSuccess={(orderId) => {
+        toast.success('Pago confirmado');
+        setCart([]);
+        navigate('/pharmacy/success');
+      }} />
     </div>
   );
 };

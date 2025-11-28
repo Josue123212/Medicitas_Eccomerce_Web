@@ -53,6 +53,9 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'apps.core.middleware.RoleBasedRateLimitMiddleware',
+    'apps.core.middleware.SecurityHeadersMiddleware',
+    'apps.core.middleware.RoleBasedLoggingMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -213,16 +216,16 @@ CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
 # Para desarrollo: usar console backend (comentado para usar Gmail)
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# SMTP Configuration para Gmail (ACTIVADO)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'josue.choquepuma@tecsup.edu.pe'
-EMAIL_HOST_PASSWORD = 'juvz zunn ingu czjj'
+# SMTP Configuration (por entorno)
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 # Email Settings
-DEFAULT_FROM_EMAIL = 'Sistema de Citas Médicas <noreply@citasmedicas.com>'
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Sistema de Citas Médicas <noreply@citasmedicas.com>')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 EMAIL_SUBJECT_PREFIX = '[Citas Médicas] '
 
@@ -314,3 +317,48 @@ SPECTACULAR_SETTINGS = {
         'pathInMiddlePanel': True,
     },
 }
+
+# Security headers
+SECURITY_HEADERS = {
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+}
+
+# Rate limiting (per rol por minuto)
+RATE_LIMIT_SETTINGS = {
+    'ENABLED': True,
+    'EXEMPT_PATHS': ['/api/auth/', '/api/users/auth/', '/admin/'],
+    'RATE_LIMITS': {
+        'admin': 1000,
+        'doctor': 200,
+        'secretary': 100,
+        'patient': 50,
+        'anonymous': 100,
+    },
+}
+
+# Audit settings
+AUDIT_SETTINGS = {
+    'ENABLED': True,
+    'LOG_ANONYMOUS_USERS': True,
+    'LOG_GET_REQUESTS': False,
+    'LOG_SENSITIVE_DATA': False,
+    'SENSITIVE_FIELDS': ['password', 'token', 'secret', 'key', 'auth'],
+    'CRITICAL_RESOURCES': ['users', 'admin', 'system'],
+}
+
+# Middleware logging settings
+MIDDLEWARE_LOGGING = {
+    'LOG_REQUESTS': True,
+    'LOG_RESPONSES': True,
+    'LOG_PERFORMANCE': True,
+    'PERFORMANCE_THRESHOLD_MS': 1000,
+    'LOG_RATE_LIMIT_VIOLATIONS': True,
+    'LOG_SECURITY_EVENTS': True,
+}
+
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
+STRIPE_CURRENCY = config('STRIPE_CURRENCY', default='USD')
