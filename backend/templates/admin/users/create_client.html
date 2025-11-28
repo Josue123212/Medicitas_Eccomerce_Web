@@ -1,0 +1,165 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block title %}Crear {{ user_type_display }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrahead %}
+<script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+{{ block.super }}
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url 'admin:users_user_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; <a href="{% url 'admin:users_user_select_type' %}">Seleccionar Tipo</a>
+    &rsaquo; Crear {{ user_type_display }}
+</div>
+{% endblock %}
+
+{% block content_title %}
+<h1>Crear {{ user_type_display }} 🧑‍🦱</h1>
+<p class="help">Complete la información del paciente. Los campos marcados con * son obligatorios.</p>
+{% endblock %}
+
+{% block field_sets %}
+<fieldset class="module aligned">
+    <h2>📋 Información Básica</h2>
+    <div class="form-row">
+        <div class="field-box">
+            {{ form.username.label_tag }}
+            {{ form.username }}
+            {% if form.username.help_text %}<p class="help">{{ form.username.help_text }}</p>{% endif %}
+            {{ form.username.errors }}
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="field-box">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {% if form.email.help_text %}<p class="help">{{ form.email.help_text }}</p>{% endif %}
+            {{ form.email.errors }}
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="field-box field-first_name">
+            {{ form.first_name.label_tag }}
+            {{ form.first_name }}
+            {{ form.first_name.errors }}
+        </div>
+        <div class="field-box field-last_name">
+            {{ form.last_name.label_tag }}
+            {{ form.last_name }}
+            {{ form.last_name.errors }}
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="field-box field-phone">
+            {{ form.phone.label_tag }}
+            {{ form.phone }}
+            {{ form.phone.errors }}
+        </div>
+        <div class="field-box field-date_of_birth">
+            {{ form.date_of_birth.label_tag }}
+            {{ form.date_of_birth }}
+            {{ form.date_of_birth.errors }}
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="field-box">
+            {{ form.address.label_tag }}
+            {{ form.address }}
+            {{ form.address.errors }}
+        </div>
+    </div>
+</fieldset>
+
+<fieldset class="module aligned">
+    <h2>🔐 Contraseña</h2>
+    <div class="form-row">
+        <div class="field-box">
+            {{ form.password1.label_tag }}
+            {{ form.password1 }}
+            {% if form.password1.help_text %}<p class="help">{{ form.password1.help_text }}</p>{% endif %}
+            {{ form.password1.errors }}
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="field-box">
+            {{ form.password2.label_tag }}
+            {{ form.password2 }}
+            {% if form.password2.help_text %}<p class="help">{{ form.password2.help_text }}</p>{% endif %}
+            {{ form.password2.errors }}
+        </div>
+    </div>
+</fieldset>
+
+<fieldset class="module aligned">
+    <h2>👤 Información Personal</h2>
+    <div class="form-row">
+        <div class="field-box field-gender">
+            {{ form.gender.label_tag }}
+            {{ form.gender }}
+            {{ form.gender.errors }}
+        </div>
+        <div class="field-box field-blood_type">
+            {{ form.blood_type.label_tag }}
+            {{ form.blood_type }}
+            {{ form.blood_type.errors }}
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="field-box">
+            {{ form.allergies.label_tag }}
+            {{ form.allergies }}
+            {{ form.allergies.errors }}
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="field-box">
+            {{ form.medical_conditions.label_tag }}
+            {{ form.medical_conditions }}
+            {{ form.medical_conditions.errors }}
+        </div>
+    </div>
+</fieldset>
+
+<fieldset class="module aligned">
+    <h2>🚨 Contacto de Emergencia</h2>
+    <div class="form-row">
+        <div class="field-box">
+            {{ form.emergency_contact_name.label_tag }}
+            {{ form.emergency_contact_name }}
+            {{ form.emergency_contact_name.errors }}
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="field-box field-emergency_contact_phone">
+            {{ form.emergency_contact_phone.label_tag }}
+            {{ form.emergency_contact_phone }}
+            {{ form.emergency_contact_phone.errors }}
+        </div>
+        <div class="field-box field-emergency_contact_relationship">
+            {{ form.emergency_contact_relationship.label_tag }}
+            {{ form.emergency_contact_relationship }}
+            {{ form.emergency_contact_relationship.errors }}
+        </div>
+    </div>
+</fieldset>
+{% endblock %}
+
+{% block submit_buttons_bottom %}
+<div class="submit-row">
+    <input type="submit" value="Crear Paciente" class="default" name="_save">
+    <a href="{% url 'admin:users_user_select_type' %}" class="button cancel-link">Cancelar</a>
+</div>
+{% endblock %}

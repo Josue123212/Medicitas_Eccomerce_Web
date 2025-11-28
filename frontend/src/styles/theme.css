@@ -1,0 +1,138 @@
+/**
+ * 🎨 ARCHIVO PADRE - SISTEMA DE HERENCIA DE COLORES
+ * 
+ * Este archivo controla TODOS los colores de la aplicación.
+ * Cambiar aquí = cambio automático en TODAS las vistas.
+ */
+
+:root {
+  /* ===== COLORES PRINCIPALES ===== */
+  /* 🔵 Paleta AZUL inicial (cambiar aquí para toda la app) */
+  --color-primary-50: #ecfdf5;
+  --color-primary-100: #d1fae5;
+  --color-primary-200: #a7f3d0;
+  --color-primary-300: #6ee7b7;
+  --color-primary-400: #34d399;
+  --color-primary-500: #10b981;  /* 🎯 COLOR PRINCIPAL */
+  --color-primary-600: #059669;  /* 🎯 HOVER */
+  --color-primary-700: #047857;  /* 🎯 ACTIVE */
+  --color-primary-800: #065f46;
+  --color-primary-900: #064e3b;
+  --color-primary-950: #022c22;
+
+  /* ===== COLORES SECUNDARIOS ===== */
+  /* ⚪ Paleta BLANCA/GRIS */
+  --color-secondary-50: #f8fafc;
+  --color-secondary-100: #f1f5f9;
+  --color-secondary-200: #e2e8f0;
+  --color-secondary-300: #cbd5e1;
+  --color-secondary-400: #94a3b8;
+  --color-secondary-500: #64748b;  /* 🎯 GRIS PRINCIPAL */
+  --color-secondary-600: #475569;
+  --color-secondary-700: #334155;
+  --color-secondary-800: #1e293b;
+  --color-secondary-900: #0f172a;
+
+  /* ===== VARIABLES SEMÁNTICAS ===== */
+  /* Estas se heredan automáticamente */
+  --primary: var(--color-primary-500);
+  --primary-hover: var(--color-primary-600);
+  --primary-active: var(--color-primary-700);
+  --primary-light: var(--color-primary-50);
+  --primary-dark: var(--color-primary-800);
+
+  --secondary: var(--color-secondary-500);
+  --background: var(--color-secondary-50);
+  --surface: #ffffff;
+  --text-primary: var(--color-secondary-900);
+  --text-secondary: var(--color-secondary-600);
+  --border: var(--color-secondary-200);
+  /* Texto sobre fondos primarios (ej. gradientes/botones) */
+  --text-on-primary: #ffffff;
+  --text-on-primary-90: rgba(255, 255, 255, 0.9);
+
+  /* ===== ESTADOS MÉDICOS ===== */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --error-light: #fef2f2;
+  --info: var(--primary);
+}
+
+/* ===== CLASES UTILITARIAS HEREDADAS ===== */
+.bg-primary { background-color: var(--primary); }
+.bg-primary-hover { background-color: var(--primary-hover); }
+.bg-primary-light { background-color: var(--primary-light); }
+
+.text-primary { color: var(--primary); }
+.text-primary-hover { color: var(--primary-hover); }
+.text-secondary { color: var(--text-secondary); }
+
+.border-primary { border-color: var(--primary); }
+.border-secondary { border-color: var(--border); }
+
+/* ===== COMPONENTES CON HERENCIA ===== */
+.btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.btn-primary:active {
+  background-color: var(--primary-active);
+  border-color: var(--primary-active);
+}
+
+.btn-outline {
+  background-color: transparent;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-outline:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+.input-focus:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.card-header {
+  background-color: var(--primary-light);
+  border-bottom: 1px solid var(--border);
+}
+
+/* 🌈 GRADIENTES HEREDADOS */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+}
+
+.gradient-hero {
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--background) 100%);
+}
+
+/* ✨ Animaciones utilitarias */
+@keyframes floatSoft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.fab-animate {
+  animation: floatSoft 3s ease-in-out infinite;
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.indicator-animate {
+  animation: fadeInUp 400ms ease-out both;
+}

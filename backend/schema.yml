@@ -1,0 +1,4649 @@
+openapi: 3.0.3
+info:
+  title: Sistema de Gestión Médica API
+  version: 1.0.0
+  description: API REST para sistema de gestión de citas médicas, pacientes y doctores
+paths:
+  /api/docs/:
+    get:
+      operationId: docs_retrieve
+      description: Vista personalizada para mostrar la documentación de la API.
+      tags:
+      - docs
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/status/:
+    get:
+      operationId: status_retrieve
+      description: Vista para verificar el estado de la API.
+      tags:
+      - status
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/users/:
+    get:
+      operationId: users_users_list
+      description: |-
+        ViewSet completo para gestión de usuarios.
+
+        Proporciona operaciones CRUD completas para usuarios:
+        - list: Listar usuarios (con filtros)
+        - create: Crear nuevo usuario (registro)
+        - retrieve: Obtener usuario específico
+        - update: Actualizar usuario completo
+        - partial_update: Actualizar usuario parcial
+        - destroy: Eliminar usuario
+
+        Acciones personalizadas:
+        - profile: Obtener/actualizar perfil del usuario autenticado
+        - change_password: Cambiar contraseña
+        - check_email: Verificar disponibilidad de email
+        - check_username: Verificar disponibilidad de username
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserList'
+          description: ''
+    post:
+      operationId: users_users_create
+      description: Crear un nuevo usuario (registro).
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistration'
+          description: ''
+  /api/users/users/change-password/:
+    post:
+      operationId: users_users_change_password_create
+      description: Cambiar la contraseña del usuario autenticado.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/users/check-email/:
+    post:
+      operationId: users_users_check_email_create
+      description: Verificar disponibilidad de email.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/check-username/:
+    post:
+      operationId: users_users_check_username_create
+      description: Verificar disponibilidad de username.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/profile/:
+    put:
+      operationId: users_users_profile_update
+      description: |-
+        Obtener o actualizar el perfil del usuario autenticado.
+
+        GET: Retorna el perfil del usuario actual
+        PUT/PATCH: Actualiza el perfil del usuario actual
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+    patch:
+      operationId: users_users_profile_partial_update
+      description: |-
+        Obtener o actualizar el perfil del usuario autenticado.
+
+        GET: Retorna el perfil del usuario actual
+        PUT/PATCH: Actualiza el perfil del usuario actual
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+    get:
+      operationId: users_users_profile_retrieve
+      description: |-
+        Obtener o actualizar el perfil del usuario autenticado.
+
+        GET: Retorna el perfil del usuario actual
+        PUT/PATCH: Actualiza el perfil del usuario actual
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+  /api/users/users/{id}/:
+    put:
+      operationId: users_users_update
+      description: Actualizar usuario completo.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Usuario.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+    patch:
+      operationId: users_users_partial_update
+      description: Actualizar usuario parcial.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Usuario.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+    delete:
+      operationId: users_users_destroy
+      description: |-
+        ViewSet completo para gestión de usuarios.
+
+        Proporciona operaciones CRUD completas para usuarios:
+        - list: Listar usuarios (con filtros)
+        - create: Crear nuevo usuario (registro)
+        - retrieve: Obtener usuario específico
+        - update: Actualizar usuario completo
+        - partial_update: Actualizar usuario parcial
+        - destroy: Eliminar usuario
+
+        Acciones personalizadas:
+        - profile: Obtener/actualizar perfil del usuario autenticado
+        - change_password: Cambiar contraseña
+        - check_email: Verificar disponibilidad de email
+        - check_username: Verificar disponibilidad de username
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Usuario.
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+    get:
+      operationId: users_users_retrieve
+      description: |-
+        ViewSet completo para gestión de usuarios.
+
+        Proporciona operaciones CRUD completas para usuarios:
+        - list: Listar usuarios (con filtros)
+        - create: Crear nuevo usuario (registro)
+        - retrieve: Obtener usuario específico
+        - update: Actualizar usuario completo
+        - partial_update: Actualizar usuario parcial
+        - destroy: Eliminar usuario
+
+        Acciones personalizadas:
+        - profile: Obtener/actualizar perfil del usuario autenticado
+        - change_password: Cambiar contraseña
+        - check_email: Verificar disponibilidad de email
+        - check_username: Verificar disponibilidad de username
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Usuario.
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/secretaries/:
+    get:
+      operationId: users_secretaries_list
+      description: |-
+        ViewSet para gestionar secretarias.
+        Proporciona endpoints para:
+        - GET /api/secretaries/me/ - Obtener perfil de la secretaria actual
+        - PUT /api/secretaries/me/ - Actualizar perfil de la secretaria actual
+        - GET /api/secretaries/dashboard/ - Dashboard con estadísticas
+        - GET /api/secretaries/appointments/ - Listar citas
+        - POST /api/secretaries/appointments/ - Crear nueva cita
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSecretaryProfileList'
+          description: ''
+    post:
+      operationId: users_secretaries_create
+      description: |-
+        ViewSet para gestionar secretarias.
+        Proporciona endpoints para:
+        - GET /api/secretaries/me/ - Obtener perfil de la secretaria actual
+        - PUT /api/secretaries/me/ - Actualizar perfil de la secretaria actual
+        - GET /api/secretaries/dashboard/ - Dashboard con estadísticas
+        - GET /api/secretaries/appointments/ - Listar citas
+        - POST /api/secretaries/appointments/ - Crear nueva cita
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretaryProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SecretaryProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SecretaryProfileRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretaryProfile'
+          description: ''
+  /api/users/secretaries/appointments/:
+    get:
+      operationId: users_secretaries_appointments_retrieve
+      description: |-
+        Listar citas que puede gestionar la secretaria.
+        GET /api/secretaries/appointments/
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretaryProfile'
+          description: ''
+    post:
+      operationId: users_secretaries_appointments_create
+      description: |-
+        Crear una nueva cita.
+        POST /api/secretaries/appointments/
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretaryProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SecretaryProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SecretaryProfileRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretaryProfile'
+          description: ''
+  /api/users/secretaries/dashboard/:
+    get:
+      operationId: users_secretaries_dashboard_retrieve
+      description: |-
+        Dashboard con estadísticas para la secretaria.
+        GET /api/secretaries/dashboard/
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretaryProfile'
+          description: ''
+  /api/users/secretaries/me/:
+    put:
+      operationId: users_secretaries_me_update
+      description: |-
+        Obtener o actualizar el perfil de la secretaria actual.
+        GET /api/users/secretaries/me/ - Obtener perfil
+        PUT/PATCH /api/users/secretaries/me/ - Actualizar perfil
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretaryProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SecretaryProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SecretaryProfileRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretaryProfile'
+          description: ''
+    patch:
+      operationId: users_secretaries_me_partial_update
+      description: |-
+        Obtener o actualizar el perfil de la secretaria actual.
+        GET /api/users/secretaries/me/ - Obtener perfil
+        PUT/PATCH /api/users/secretaries/me/ - Actualizar perfil
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSecretaryProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSecretaryProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSecretaryProfileRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretaryProfile'
+          description: ''
+    get:
+      operationId: users_secretaries_me_retrieve
+      description: |-
+        Obtener o actualizar el perfil de la secretaria actual.
+        GET /api/users/secretaries/me/ - Obtener perfil
+        PUT/PATCH /api/users/secretaries/me/ - Actualizar perfil
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretaryProfile'
+          description: ''
+  /api/users/secretaries/{id}/:
+    put:
+      operationId: users_secretaries_update
+      description: |-
+        ViewSet para gestionar secretarias.
+        Proporciona endpoints para:
+        - GET /api/secretaries/me/ - Obtener perfil de la secretaria actual
+        - PUT /api/secretaries/me/ - Actualizar perfil de la secretaria actual
+        - GET /api/secretaries/dashboard/ - Dashboard con estadísticas
+        - GET /api/secretaries/appointments/ - Listar citas
+        - POST /api/secretaries/appointments/ - Crear nueva cita
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Perfil de Secretario/a.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretaryProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SecretaryProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SecretaryProfileRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretaryProfile'
+          description: ''
+    patch:
+      operationId: users_secretaries_partial_update
+      description: |-
+        ViewSet para gestionar secretarias.
+        Proporciona endpoints para:
+        - GET /api/secretaries/me/ - Obtener perfil de la secretaria actual
+        - PUT /api/secretaries/me/ - Actualizar perfil de la secretaria actual
+        - GET /api/secretaries/dashboard/ - Dashboard con estadísticas
+        - GET /api/secretaries/appointments/ - Listar citas
+        - POST /api/secretaries/appointments/ - Crear nueva cita
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Perfil de Secretario/a.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSecretaryProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSecretaryProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSecretaryProfileRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretaryProfile'
+          description: ''
+    delete:
+      operationId: users_secretaries_destroy
+      description: |-
+        ViewSet para gestionar secretarias.
+        Proporciona endpoints para:
+        - GET /api/secretaries/me/ - Obtener perfil de la secretaria actual
+        - PUT /api/secretaries/me/ - Actualizar perfil de la secretaria actual
+        - GET /api/secretaries/dashboard/ - Dashboard con estadísticas
+        - GET /api/secretaries/appointments/ - Listar citas
+        - POST /api/secretaries/appointments/ - Crear nueva cita
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Perfil de Secretario/a.
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+    get:
+      operationId: users_secretaries_retrieve
+      description: |-
+        ViewSet para gestionar secretarias.
+        Proporciona endpoints para:
+        - GET /api/secretaries/me/ - Obtener perfil de la secretaria actual
+        - PUT /api/secretaries/me/ - Actualizar perfil de la secretaria actual
+        - GET /api/secretaries/dashboard/ - Dashboard con estadísticas
+        - GET /api/secretaries/appointments/ - Listar citas
+        - POST /api/secretaries/appointments/ - Crear nueva cita
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Perfil de Secretario/a.
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretaryProfile'
+          description: ''
+  /api/users/auth/login/:
+    post:
+      operationId: users_auth_login_create
+      description: Manejar el login del usuario.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomTokenObtainPair'
+          description: ''
+  /api/users/auth/refresh/:
+    post:
+      operationId: users_auth_refresh_create
+      description: Manejar el refresh del token.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/users/auth/verify/:
+    post:
+      operationId: users_auth_verify_create
+      description: |-
+        Takes a token and indicates if it is valid.  This view provides no
+        information about a token's fitness for a particular use.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenVerifyRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenVerifyRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenVerifyRequest'
+        required: true
+      responses:
+        '200':
+          description: No response body
+  /api/users/auth/logout/:
+    post:
+      operationId: users_auth_logout_create
+      description: Manejar el logout del usuario.
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/auth/register/:
+    post:
+      operationId: users_auth_register_create
+      description: Vista para registrar nuevos usuarios.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistration'
+          description: ''
+  /api/users/profile/:
+    get:
+      operationId: users_profile_retrieve
+      description: Vista para ver y actualizar el perfil del usuario.
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+    put:
+      operationId: users_profile_update
+      description: Vista para ver y actualizar el perfil del usuario.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+    patch:
+      operationId: users_profile_partial_update
+      description: Vista para ver y actualizar el perfil del usuario.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+  /api/users/change-password/:
+    post:
+      operationId: users_change_password_create
+      description: Cambiar la contraseña del usuario.
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/auth/password-reset/request/:
+    post:
+      operationId: users_auth_password_reset_request_create
+      description: Solicitar recuperación de contraseña.
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/users/auth/password-reset/verify/:
+    post:
+      operationId: users_auth_password_reset_verify_create
+      description: Verificar si un token de recuperación es válido.
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/users/auth/password-reset/confirm/:
+    post:
+      operationId: users_auth_password_reset_confirm_create
+      description: Confirmar nueva contraseña usando token de recuperación.
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/users/me/:
+    get:
+      operationId: users_me_retrieve
+      description: Endpoint para obtener información del usuario actual.
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/legacy/:
+    get:
+      operationId: users_legacy_list
+      description: Vista para listar usuarios (solo para administradores).
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserList'
+          description: ''
+  /api/users/legacy/{id}/:
+    get:
+      operationId: users_legacy_retrieve
+      description: Vista para ver detalles de un usuario específico.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/check-email/:
+    post:
+      operationId: users_check_email_create
+      description: Endpoint para verificar si un email está disponible.
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/users/check-username/:
+    post:
+      operationId: users_check_username_create
+      description: Endpoint para verificar si un username está disponible.
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/patients/patients/:
+    get:
+      operationId: patients_patients_list
+      description: |-
+        ViewSet completo para gestión de pacientes.
+
+        Proporciona operaciones CRUD completas para pacientes:
+        - list: Listar pacientes (con filtros y búsqueda)
+        - create: Crear nuevo paciente
+        - retrieve: Obtener paciente específico
+        - update: Actualizar paciente completo
+        - partial_update: Actualizar paciente parcial
+        - destroy: Eliminar paciente (soft delete)
+
+        Acciones personalizadas:
+        - medical_history: Obtener historial médico del paciente
+        - appointments: Obtener citas del paciente
+        - statistics: Estadísticas del paciente
+
+        Filtros disponibles:
+        - name: Búsqueda por nombre o apellido
+        - phone, email: Filtros por información de contacto
+        - birth_date, birth_date_from, birth_date_to: Filtros por fecha de nacimiento
+        - age_min, age_max: Filtros por rango de edad
+        - address: Filtro por dirección
+        - emergency_contact_name, emergency_contact_phone: Filtros por contacto de emergencia
+
+        Búsqueda disponible en:
+        - Nombre y apellido del paciente
+        - Email
+        - Teléfono
+        - Dirección
+
+        Ordenamiento disponible por:
+        - first_name, last_name, birth_date, phone, created_at
+      parameters:
+      - in: query
+        name: address
+        schema:
+          type: string
+        description: Buscar por dirección (búsqueda parcial)
+      - in: query
+        name: address__icontains
+        schema:
+          type: string
+      - in: query
+        name: age_max
+        schema:
+          type: number
+        description: Filtrar pacientes con edad máxima
+      - in: query
+        name: age_min
+        schema:
+          type: number
+        description: Filtrar pacientes con edad mínima
+      - in: query
+        name: birth_date
+        schema:
+          type: string
+          format: date
+        description: Filtrar por fecha de nacimiento exacta (YYYY-MM-DD)
+      - in: query
+        name: birth_date_from
+        schema:
+          type: string
+          format: date
+        description: Filtrar pacientes nacidos desde esta fecha
+      - in: query
+        name: birth_date_to
+        schema:
+          type: string
+          format: date
+        description: Filtrar pacientes nacidos hasta esta fecha
+      - in: query
+        name: created_at__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_at__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: email
+        schema:
+          type: string
+        description: Buscar por email (búsqueda parcial)
+      - in: query
+        name: emergency_contact_name
+        schema:
+          type: string
+        description: Buscar por nombre del contacto de emergencia
+      - in: query
+        name: emergency_contact_name__icontains
+        schema:
+          type: string
+      - in: query
+        name: emergency_contact_phone
+        schema:
+          type: string
+        description: Buscar por teléfono del contacto de emergencia
+      - in: query
+        name: emergency_contact_phone__icontains
+        schema:
+          type: string
+      - in: query
+        name: name
+        schema:
+          type: string
+        description: Buscar por nombre o apellido del paciente
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: phone
+        schema:
+          type: string
+        description: Buscar por número de teléfono (búsqueda parcial)
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: updated_at__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_at__lte
+        schema:
+          type: string
+          format: date-time
+      tags:
+      - patients
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPatientListList'
+          description: ''
+    post:
+      operationId: patients_patients_create
+      description: Crear un nuevo paciente.
+      tags:
+      - patients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatientCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatientCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCreate'
+          description: ''
+  /api/patients/patients/{id}/:
+    put:
+      operationId: patients_patients_update
+      description: Actualizar paciente completo o parcial.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Paciente.
+        required: true
+      tags:
+      - patients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatientUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatientUpdateRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientUpdate'
+          description: ''
+    patch:
+      operationId: patients_patients_partial_update
+      description: Actualizar paciente parcial.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Paciente.
+        required: true
+      tags:
+      - patients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientUpdateRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientUpdate'
+          description: ''
+    delete:
+      operationId: patients_patients_destroy
+      description: Eliminar paciente (soft delete).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Paciente.
+        required: true
+      tags:
+      - patients
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+    get:
+      operationId: patients_patients_retrieve
+      description: |-
+        ViewSet completo para gestión de pacientes.
+
+        Proporciona operaciones CRUD completas para pacientes:
+        - list: Listar pacientes (con filtros y búsqueda)
+        - create: Crear nuevo paciente
+        - retrieve: Obtener paciente específico
+        - update: Actualizar paciente completo
+        - partial_update: Actualizar paciente parcial
+        - destroy: Eliminar paciente (soft delete)
+
+        Acciones personalizadas:
+        - medical_history: Obtener historial médico del paciente
+        - appointments: Obtener citas del paciente
+        - statistics: Estadísticas del paciente
+
+        Filtros disponibles:
+        - name: Búsqueda por nombre o apellido
+        - phone, email: Filtros por información de contacto
+        - birth_date, birth_date_from, birth_date_to: Filtros por fecha de nacimiento
+        - age_min, age_max: Filtros por rango de edad
+        - address: Filtro por dirección
+        - emergency_contact_name, emergency_contact_phone: Filtros por contacto de emergencia
+
+        Búsqueda disponible en:
+        - Nombre y apellido del paciente
+        - Email
+        - Teléfono
+        - Dirección
+
+        Ordenamiento disponible por:
+        - first_name, last_name, birth_date, phone, created_at
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Paciente.
+        required: true
+      tags:
+      - patients
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+          description: ''
+  /api/patients/patients/{id}/appointments/:
+    get:
+      operationId: patients_patients_appointments_retrieve
+      description: Obtener las citas del paciente con filtros opcionales.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Paciente.
+        required: true
+      tags:
+      - patients
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+          description: ''
+  /api/patients/patients/{id}/medical-history/:
+    get:
+      operationId: patients_patients_medical_history_retrieve
+      description: Obtener el historial médico completo del paciente.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Paciente.
+        required: true
+      tags:
+      - patients
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+          description: ''
+  /api/patients/patients/{id}/statistics/:
+    get:
+      operationId: patients_patients_statistics_retrieve
+      description: Obtener estadísticas del paciente.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Paciente.
+        required: true
+      tags:
+      - patients
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+          description: ''
+  /api/doctors/public/:
+    get:
+      operationId: doctors_public_retrieve
+      description: Vista de función para listar doctores públicos disponibles
+      tags:
+      - doctors
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/doctors/me/:
+    get:
+      operationId: doctors_me_retrieve
+      description: |-
+        Vista de función para el perfil del doctor logueado.
+
+        GET /api/doctors/me/ - Obtener perfil del doctor logueado
+        PUT /api/doctors/me/ - Actualizar perfil del doctor logueado
+      tags:
+      - doctors
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+    put:
+      operationId: doctors_me_update
+      description: |-
+        Vista de función para el perfil del doctor logueado.
+
+        GET /api/doctors/me/ - Obtener perfil del doctor logueado
+        PUT /api/doctors/me/ - Actualizar perfil del doctor logueado
+      tags:
+      - doctors
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/doctors/me/me/:
+    put:
+      operationId: doctors_me_me_update
+      description: |-
+        GET /api/doctors/me/ - Obtener el perfil completo del doctor logueado.
+        PUT /api/doctors/me/ - Actualizar el perfil del doctor logueado.
+      tags:
+      - doctors
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+    get:
+      operationId: doctors_me_me_retrieve
+      description: |-
+        GET /api/doctors/me/ - Obtener el perfil completo del doctor logueado.
+        PUT /api/doctors/me/ - Actualizar el perfil del doctor logueado.
+      tags:
+      - doctors
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/doctors/me/appointments/:
+    get:
+      operationId: doctors_me_appointments_retrieve
+      description: |-
+        GET /api/doctors/me/appointments/
+        Obtener todas las citas del doctor logueado.
+      tags:
+      - doctors
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/doctors/me/schedule/:
+    get:
+      operationId: doctors_me_schedule_retrieve
+      description: |-
+        GET /api/doctors/me/schedule/
+        Obtener el horario de trabajo del doctor logueado.
+      tags:
+      - doctors
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/doctors/me/availability/:
+    put:
+      operationId: doctors_me_availability_update
+      description: |-
+        PUT /api/doctors/me/availability/
+        Cambiar el estado de disponibilidad del doctor.
+      tags:
+      - doctors
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/doctors/:
+    get:
+      operationId: doctors_list
+      description: |-
+        ViewSet completo para gestión de doctores.
+
+        Proporciona operaciones CRUD completas para doctores:
+        - list: Listar doctores (con filtros y búsqueda)
+        - create: Crear nuevo doctor
+        - retrieve: Obtener doctor específico
+        - update: Actualizar doctor completo
+        - partial_update: Actualizar doctor parcial
+        - destroy: Eliminar doctor (soft delete)
+
+        Acciones personalizadas:
+        - available_slots: Obtener horarios disponibles del doctor
+        - schedule: Obtener agenda del doctor
+        - statistics: Estadísticas del doctor
+        - toggle_availability: Cambiar disponibilidad del doctor
+        - public_profile: Perfil público del doctor
+
+        Filtros disponibles:
+        - name: Búsqueda por nombre o apellido
+        - specialization: Filtro por especialización
+        - is_available: Filtro por disponibilidad
+        - experience_min, experience_max: Filtros por años de experiencia
+
+        Búsqueda disponible en:
+        - Nombre y apellido del doctor
+        - Especialización
+        - Número de licencia médica
+
+        Ordenamiento disponible por:
+        - first_name, last_name, specialization, years_experience, is_available
+      parameters:
+      - in: query
+        name: experience_max
+        schema:
+          type: integer
+        description: Filtrar doctores con máximo años de experiencia
+      - in: query
+        name: experience_min
+        schema:
+          type: integer
+        description: Filtrar doctores con mínimo años de experiencia
+      - in: query
+        name: is_available
+        schema:
+          type: boolean
+        description: Filtrar por disponibilidad del doctor
+      - in: query
+        name: name
+        schema:
+          type: string
+        description: Buscar por nombre o apellido del doctor
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: specialization
+        schema:
+          type: string
+        description: Filtrar por especialización (búsqueda parcial)
+      - in: query
+        name: specialization__icontains
+        schema:
+          type: string
+      tags:
+      - doctors
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDoctorListList'
+          description: ''
+    post:
+      operationId: doctors_create
+      description: Crear un nuevo doctor.
+      tags:
+      - doctors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DoctorCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DoctorCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DoctorCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorCreate'
+          description: ''
+  /api/doctors/{id}/:
+    put:
+      operationId: doctors_update
+      description: Actualizar doctor completo o parcial.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Doctor.
+        required: true
+      tags:
+      - doctors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DoctorUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DoctorUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DoctorUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorUpdate'
+          description: ''
+    patch:
+      operationId: doctors_partial_update
+      description: |-
+        ViewSet completo para gestión de doctores.
+
+        Proporciona operaciones CRUD completas para doctores:
+        - list: Listar doctores (con filtros y búsqueda)
+        - create: Crear nuevo doctor
+        - retrieve: Obtener doctor específico
+        - update: Actualizar doctor completo
+        - partial_update: Actualizar doctor parcial
+        - destroy: Eliminar doctor (soft delete)
+
+        Acciones personalizadas:
+        - available_slots: Obtener horarios disponibles del doctor
+        - schedule: Obtener agenda del doctor
+        - statistics: Estadísticas del doctor
+        - toggle_availability: Cambiar disponibilidad del doctor
+        - public_profile: Perfil público del doctor
+
+        Filtros disponibles:
+        - name: Búsqueda por nombre o apellido
+        - specialization: Filtro por especialización
+        - is_available: Filtro por disponibilidad
+        - experience_min, experience_max: Filtros por años de experiencia
+
+        Búsqueda disponible en:
+        - Nombre y apellido del doctor
+        - Especialización
+        - Número de licencia médica
+
+        Ordenamiento disponible por:
+        - first_name, last_name, specialization, years_experience, is_available
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Doctor.
+        required: true
+      tags:
+      - doctors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDoctorUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDoctorUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDoctorUpdateRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorUpdate'
+          description: ''
+    delete:
+      operationId: doctors_destroy
+      description: |-
+        ViewSet completo para gestión de doctores.
+
+        Proporciona operaciones CRUD completas para doctores:
+        - list: Listar doctores (con filtros y búsqueda)
+        - create: Crear nuevo doctor
+        - retrieve: Obtener doctor específico
+        - update: Actualizar doctor completo
+        - partial_update: Actualizar doctor parcial
+        - destroy: Eliminar doctor (soft delete)
+
+        Acciones personalizadas:
+        - available_slots: Obtener horarios disponibles del doctor
+        - schedule: Obtener agenda del doctor
+        - statistics: Estadísticas del doctor
+        - toggle_availability: Cambiar disponibilidad del doctor
+        - public_profile: Perfil público del doctor
+
+        Filtros disponibles:
+        - name: Búsqueda por nombre o apellido
+        - specialization: Filtro por especialización
+        - is_available: Filtro por disponibilidad
+        - experience_min, experience_max: Filtros por años de experiencia
+
+        Búsqueda disponible en:
+        - Nombre y apellido del doctor
+        - Especialización
+        - Número de licencia médica
+
+        Ordenamiento disponible por:
+        - first_name, last_name, specialization, years_experience, is_available
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Doctor.
+        required: true
+      tags:
+      - doctors
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+    get:
+      operationId: doctors_retrieve
+      description: |-
+        ViewSet completo para gestión de doctores.
+
+        Proporciona operaciones CRUD completas para doctores:
+        - list: Listar doctores (con filtros y búsqueda)
+        - create: Crear nuevo doctor
+        - retrieve: Obtener doctor específico
+        - update: Actualizar doctor completo
+        - partial_update: Actualizar doctor parcial
+        - destroy: Eliminar doctor (soft delete)
+
+        Acciones personalizadas:
+        - available_slots: Obtener horarios disponibles del doctor
+        - schedule: Obtener agenda del doctor
+        - statistics: Estadísticas del doctor
+        - toggle_availability: Cambiar disponibilidad del doctor
+        - public_profile: Perfil público del doctor
+
+        Filtros disponibles:
+        - name: Búsqueda por nombre o apellido
+        - specialization: Filtro por especialización
+        - is_available: Filtro por disponibilidad
+        - experience_min, experience_max: Filtros por años de experiencia
+
+        Búsqueda disponible en:
+        - Nombre y apellido del doctor
+        - Especialización
+        - Número de licencia médica
+
+        Ordenamiento disponible por:
+        - first_name, last_name, specialization, years_experience, is_available
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Doctor.
+        required: true
+      tags:
+      - doctors
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Doctor'
+          description: ''
+  /api/appointments/appointments/:
+    get:
+      operationId: appointments_appointments_list
+      description: |-
+        ViewSet completo para gestión de citas médicas.
+
+        Proporciona operaciones CRUD completas para citas:
+        - list: Listar citas (con filtros y búsqueda)
+        - create: Crear nueva cita
+        - retrieve: Obtener cita específica
+        - update: Actualizar cita completa
+        - partial_update: Actualizar cita parcial
+        - destroy: Eliminar cita
+
+        Acciones personalizadas:
+        - confirm: Confirmar una cita programada
+        - cancel: Cancelar una cita
+        - complete: Marcar cita como completada
+        - reschedule: Reprogramar una cita
+        - patient_history: Historial de citas de un paciente
+        - doctor_schedule: Agenda de un doctor
+        - available_slots: Horarios disponibles para agendar
+
+        Filtros disponibles:
+        - date, date_from, date_to: Filtros por fecha
+        - time_from, time_to: Filtros por hora
+        - status: Filtro por estado
+        - doctor, doctor_name, doctor_last_name: Filtros por doctor
+        - specialization: Filtro por especialización
+        - patient_name, patient_last_name: Filtros por paciente
+        - today, this_week, this_month, upcoming, past: Filtros de conveniencia
+
+        Búsqueda disponible en:
+        - Nombre y apellido del doctor
+        - Nombre y apellido del paciente
+        - Especialización del doctor
+        - Notas de la cita
+
+        Ordenamiento disponible por:
+        - date, time, status, created_at, updated_at
+      parameters:
+      - in: query
+        name: created_at__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_at__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: date
+        schema:
+          type: string
+          format: date
+        description: Filtrar por fecha exacta (YYYY-MM-DD)
+      - in: query
+        name: date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date_from
+        schema:
+          type: string
+          format: date
+        description: Filtrar citas desde esta fecha (YYYY-MM-DD)
+      - in: query
+        name: date_range_after
+        schema:
+          type: string
+          format: date
+        description: Filtrar por rango de fechas usando date_range_after y date_range_before
+      - in: query
+        name: date_range_before
+        schema:
+          type: string
+          format: date
+        description: Filtrar por rango de fechas usando date_range_after y date_range_before
+      - in: query
+        name: date_to
+        schema:
+          type: string
+          format: date
+        description: Filtrar citas hasta esta fecha (YYYY-MM-DD)
+      - in: query
+        name: doctor
+        schema:
+          type: integer
+        description: Filtrar por doctor específico
+      - in: query
+        name: doctor_last_name
+        schema:
+          type: string
+        description: Buscar por apellido del doctor (búsqueda parcial)
+      - in: query
+        name: doctor_name
+        schema:
+          type: string
+        description: Buscar por nombre del doctor (búsqueda parcial)
+      - in: query
+        name: id
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: past
+        schema:
+          type: boolean
+        description: Filtrar citas pasadas (true/false)
+      - in: query
+        name: patient_last_name
+        schema:
+          type: string
+        description: Buscar por apellido del paciente (búsqueda parcial)
+      - in: query
+        name: patient_name
+        schema:
+          type: string
+        description: Buscar por nombre del paciente (búsqueda parcial)
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: specialization
+        schema:
+          type: string
+        description: Filtrar por especialización del doctor
+      - in: query
+        name: status
+        schema:
+          type: string
+          title: Estado de la cita
+          enum:
+          - cancelled
+          - completed
+          - confirmed
+          - no_show
+          - scheduled
+        description: |-
+          Filtrar por estado de la cita
+
+          * `scheduled` - Programada
+          * `confirmed` - Confirmada
+          * `completed` - Completada
+          * `cancelled` - Cancelada
+          * `no_show` - No se presentó
+      - in: query
+        name: this_month
+        schema:
+          type: boolean
+        description: Filtrar citas de este mes (true/false)
+      - in: query
+        name: this_week
+        schema:
+          type: boolean
+        description: Filtrar citas de esta semana (true/false)
+      - in: query
+        name: time
+        schema:
+          type: string
+          format: time
+      - in: query
+        name: time__gte
+        schema:
+          type: string
+          format: time
+      - in: query
+        name: time__lte
+        schema:
+          type: string
+          format: time
+      - in: query
+        name: time_from
+        schema:
+          type: string
+          format: time
+        description: Filtrar citas desde esta hora (HH:MM)
+      - in: query
+        name: time_to
+        schema:
+          type: string
+          format: time
+        description: Filtrar citas hasta esta hora (HH:MM)
+      - in: query
+        name: today
+        schema:
+          type: boolean
+        description: Filtrar citas de hoy (true/false)
+      - in: query
+        name: upcoming
+        schema:
+          type: boolean
+        description: Filtrar citas futuras (true/false)
+      - in: query
+        name: updated_at__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_at__lte
+        schema:
+          type: string
+          format: date-time
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAppointmentListList'
+          description: ''
+    post:
+      operationId: appointments_appointments_create
+      description: Crear una nueva cita médica.
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentCreate'
+          description: ''
+  /api/appointments/appointments/available-slots/:
+    get:
+      operationId: appointments_appointments_available_slots_retrieve
+      description: Obtener horarios disponibles para agendar citas.
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/appointments/appointments/doctor-schedule/:
+    get:
+      operationId: appointments_appointments_doctor_schedule_retrieve
+      description: Obtener la agenda de un doctor.
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/appointments/appointments/patient-history/:
+    get:
+      operationId: appointments_appointments_patient_history_retrieve
+      description: Obtener el historial de citas de un paciente.
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/appointments/appointments/{id}/:
+    put:
+      operationId: appointments_appointments_update
+      description: Actualizar cita completa o parcial.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Cita.
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentUpdate'
+          description: ''
+    patch:
+      operationId: appointments_appointments_partial_update
+      description: Actualizar cita parcial.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Cita.
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentUpdateRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentUpdate'
+          description: ''
+    delete:
+      operationId: appointments_appointments_destroy
+      description: Eliminar una cita.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Cita.
+        required: true
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+    get:
+      operationId: appointments_appointments_retrieve
+      description: |-
+        ViewSet completo para gestión de citas médicas.
+
+        Proporciona operaciones CRUD completas para citas:
+        - list: Listar citas (con filtros y búsqueda)
+        - create: Crear nueva cita
+        - retrieve: Obtener cita específica
+        - update: Actualizar cita completa
+        - partial_update: Actualizar cita parcial
+        - destroy: Eliminar cita
+
+        Acciones personalizadas:
+        - confirm: Confirmar una cita programada
+        - cancel: Cancelar una cita
+        - complete: Marcar cita como completada
+        - reschedule: Reprogramar una cita
+        - patient_history: Historial de citas de un paciente
+        - doctor_schedule: Agenda de un doctor
+        - available_slots: Horarios disponibles para agendar
+
+        Filtros disponibles:
+        - date, date_from, date_to: Filtros por fecha
+        - time_from, time_to: Filtros por hora
+        - status: Filtro por estado
+        - doctor, doctor_name, doctor_last_name: Filtros por doctor
+        - specialization: Filtro por especialización
+        - patient_name, patient_last_name: Filtros por paciente
+        - today, this_week, this_month, upcoming, past: Filtros de conveniencia
+
+        Búsqueda disponible en:
+        - Nombre y apellido del doctor
+        - Nombre y apellido del paciente
+        - Especialización del doctor
+        - Notas de la cita
+
+        Ordenamiento disponible por:
+        - date, time, status, created_at, updated_at
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Cita.
+        required: true
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/appointments/appointments/{id}/cancel/:
+    post:
+      operationId: appointments_appointments_cancel_create
+      description: Cancelar una cita.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Cita.
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/appointments/appointments/{id}/complete/:
+    post:
+      operationId: appointments_appointments_complete_create
+      description: Marcar una cita como completada.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Cita.
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/appointments/appointments/{id}/confirm/:
+    post:
+      operationId: appointments_appointments_confirm_create
+      description: Confirmar una cita programada.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Cita.
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/appointments/appointments/{id}/reschedule/:
+    post:
+      operationId: appointments_appointments_reschedule_create
+      description: Reprogramar una cita.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Cita.
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/reports/stats/basic/:
+    get:
+      operationId: reports_stats_basic_retrieve
+      description: |-
+        🎯 OBJETIVO: Obtener estadísticas básicas del sistema
+
+        💡 CONCEPTO: Este endpoint proporciona un resumen general
+        de las métricas más importantes del sistema de citas.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/appointments/period/:
+    get:
+      operationId: reports_appointments_period_retrieve
+      description: |-
+        🎯 OBJETIVO: Generar reporte de citas por período
+
+        💡 CONCEPTO: Agrupa las citas por fecha y muestra
+        estadísticas detalladas por cada día.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/doctors/popular/:
+    get:
+      operationId: reports_doctors_popular_retrieve
+      description: |-
+        🎯 OBJETIVO: Obtener reporte de doctores más solicitados
+
+        💡 CONCEPTO: Muestra los doctores ordenados por número
+        de citas y otras métricas de popularidad.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/cancellations/metrics/:
+    get:
+      operationId: reports_cancellations_metrics_retrieve
+      description: |-
+        🎯 OBJETIVO: Obtener métricas detalladas de cancelaciones
+
+        💡 CONCEPTO: Analiza patrones de cancelación para
+        identificar tendencias y áreas de mejora.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/dashboard/summary/:
+    get:
+      operationId: reports_dashboard_summary_retrieve
+      description: |-
+        🎯 OBJETIVO: Resumen ejecutivo para el dashboard
+
+        💡 CONCEPTO: Combina las métricas más importantes
+        en un solo endpoint para el dashboard principal.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/dashboard/doctor/:
+    get:
+      operationId: reports_dashboard_doctor_retrieve
+      description: |-
+        🎯 OBJETIVO: Dashboard específico para doctores
+
+        💡 CONCEPTO: Proporciona estadísticas personalizadas para el doctor
+        autenticado, incluyendo sus citas, pacientes y métricas de rendimiento.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/dashboard/secretary/:
+    get:
+      operationId: reports_dashboard_secretary_retrieve
+      description: |-
+        🎯 OBJETIVO: Dashboard específico para secretarias
+
+        💡 CONCEPTO: Proporciona estadísticas y herramientas de gestión
+        para secretarias, incluyendo citas del día, pacientes y tareas pendientes.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/dashboard/admin/:
+    get:
+      operationId: reports_dashboard_admin_retrieve
+      description: |-
+        🎯 OBJETIVO: Dashboard actualizado para administradores
+
+        💡 CONCEPTO: Proporciona una vista completa del sistema con
+        métricas avanzadas y herramientas de administración.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/dashboard/client/:
+    get:
+      operationId: reports_dashboard_client_retrieve
+      description: |-
+        🎯 OBJETIVO: Dashboard específico para clientes/pacientes
+
+        💡 CONCEPTO: Proporciona información personalizada para el paciente,
+        incluyendo sus citas, historial y próximas consultas.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/export/appointments/:
+    get:
+      operationId: reports_export_appointments_retrieve
+      description: |-
+        🎯 OBJETIVO: Exportar citas a formato CSV
+
+        💡 CONCEPTO: Este endpoint permite exportar todas las citas
+        del sistema a un archivo CSV con filtros opcionales.
+
+        📋 FILTROS DISPONIBLES:
+        - start_date: Fecha de inicio (YYYY-MM-DD)
+        - end_date: Fecha de fin (YYYY-MM-DD)
+        - doctor_id: ID del doctor específico
+        - status: Estado de la cita (scheduled, confirmed, completed, cancelled, no_show)
+        - patient_id: ID del paciente específico
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/export/patients/:
+    get:
+      operationId: reports_export_patients_retrieve
+      description: |-
+        🎯 OBJETIVO: Exportar pacientes a formato CSV
+
+        💡 CONCEPTO: Este endpoint permite exportar todos los pacientes
+        registrados en el sistema a un archivo CSV.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/export/doctors/:
+    get:
+      operationId: reports_export_doctors_retrieve
+      description: |-
+        🎯 OBJETIVO: Exportar doctores a formato CSV
+
+        💡 CONCEPTO: Este endpoint permite exportar todos los doctores
+        registrados en el sistema a un archivo CSV.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/export/full-report/:
+    get:
+      operationId: reports_export_full_report_retrieve
+      description: |-
+        🎯 OBJETIVO: Exportar reporte completo del sistema
+
+        💡 CONCEPTO: Este endpoint genera un archivo CSV con estadísticas
+        generales del sistema y resúmenes de datos principales.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+components:
+  schemas:
+    Appointment:
+      type: object
+      description: |-
+        Serializer principal para el modelo Appointment.
+        Incluye información de paciente y doctor con serializers anidados.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        patient:
+          type: integer
+          title: Paciente
+        doctor:
+          type: integer
+        patient_info:
+          allOf:
+          - $ref: '#/components/schemas/PatientList'
+          readOnly: true
+        doctor_info:
+          allOf:
+          - $ref: '#/components/schemas/DoctorList'
+          readOnly: true
+        date:
+          type: string
+          format: date
+          title: Fecha de la cita
+          description: Fecha en que se realizará la cita
+        time:
+          type: string
+          format: time
+          title: Hora de la cita
+          description: Hora en que se realizará la cita
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          title: Estado de la cita
+        status_display:
+          type: string
+          readOnly: true
+        status_color:
+          type: string
+          readOnly: true
+        reason:
+          type: string
+          title: Motivo de la consulta
+          description: Descripción del motivo de la cita
+        notes:
+          type: string
+          title: Notas adicionales
+          description: Notas o comentarios adicionales sobre la cita
+        is_today:
+          type: boolean
+          readOnly: true
+        is_past:
+          type: boolean
+          readOnly: true
+        can_be_cancelled:
+          type: string
+          readOnly: true
+        can_be_rescheduled:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de creación
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de actualización
+      required:
+      - can_be_cancelled
+      - can_be_rescheduled
+      - created_at
+      - date
+      - doctor
+      - doctor_info
+      - id
+      - is_past
+      - is_today
+      - patient
+      - patient_info
+      - reason
+      - status_color
+      - status_display
+      - time
+      - updated_at
+    AppointmentCreate:
+      type: object
+      description: |-
+        Serializer para crear nuevas citas.
+        Incluye validaciones específicas para la creación.
+      properties:
+        patient:
+          type: integer
+          title: Paciente
+        doctor:
+          type: integer
+        date:
+          type: string
+          format: date
+          title: Fecha de la cita
+          description: Fecha en que se realizará la cita
+        time:
+          type: string
+          format: time
+          title: Hora de la cita
+          description: Hora en que se realizará la cita
+        reason:
+          type: string
+          title: Motivo de la consulta
+          description: Descripción del motivo de la cita
+        notes:
+          type: string
+          title: Notas adicionales
+          description: Notas o comentarios adicionales sobre la cita
+      required:
+      - date
+      - doctor
+      - patient
+      - reason
+      - time
+    AppointmentCreateRequest:
+      type: object
+      description: |-
+        Serializer para crear nuevas citas.
+        Incluye validaciones específicas para la creación.
+      properties:
+        patient:
+          type: integer
+          title: Paciente
+        doctor:
+          type: integer
+        date:
+          type: string
+          format: date
+          title: Fecha de la cita
+          description: Fecha en que se realizará la cita
+        time:
+          type: string
+          format: time
+          title: Hora de la cita
+          description: Hora en que se realizará la cita
+        reason:
+          type: string
+          minLength: 1
+          title: Motivo de la consulta
+          description: Descripción del motivo de la cita
+        notes:
+          type: string
+          title: Notas adicionales
+          description: Notas o comentarios adicionales sobre la cita
+      required:
+      - date
+      - doctor
+      - patient
+      - reason
+      - time
+    AppointmentList:
+      type: object
+      description: |-
+        Serializer optimizado para listados de citas.
+        Incluye solo los campos esenciales para mejorar performance.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        patient_name:
+          type: string
+          readOnly: true
+        doctor_name:
+          type: string
+          readOnly: true
+        date:
+          type: string
+          format: date
+          title: Fecha de la cita
+          description: Fecha en que se realizará la cita
+        time:
+          type: string
+          format: time
+          title: Hora de la cita
+          description: Hora en que se realizará la cita
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          title: Estado de la cita
+        status_display:
+          type: string
+          readOnly: true
+        reason:
+          type: string
+          title: Motivo de la consulta
+          description: Descripción del motivo de la cita
+      required:
+      - date
+      - doctor_name
+      - id
+      - patient_name
+      - reason
+      - status_display
+      - time
+    AppointmentRequest:
+      type: object
+      description: |-
+        Serializer principal para el modelo Appointment.
+        Incluye información de paciente y doctor con serializers anidados.
+      properties:
+        patient:
+          type: integer
+          title: Paciente
+        doctor:
+          type: integer
+        date:
+          type: string
+          format: date
+          title: Fecha de la cita
+          description: Fecha en que se realizará la cita
+        time:
+          type: string
+          format: time
+          title: Hora de la cita
+          description: Hora en que se realizará la cita
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          title: Estado de la cita
+        reason:
+          type: string
+          minLength: 1
+          title: Motivo de la consulta
+          description: Descripción del motivo de la cita
+        notes:
+          type: string
+          title: Notas adicionales
+          description: Notas o comentarios adicionales sobre la cita
+      required:
+      - date
+      - doctor
+      - patient
+      - reason
+      - time
+    AppointmentUpdate:
+      type: object
+      description: |-
+        Serializer para actualizar citas existentes.
+        Incluye validaciones específicas para la actualización.
+      properties:
+        doctor:
+          type: integer
+        patient:
+          type: integer
+          title: Paciente
+        date:
+          type: string
+          format: date
+          title: Fecha de la cita
+          description: Fecha en que se realizará la cita
+        time:
+          type: string
+          format: time
+          title: Hora de la cita
+          description: Hora en que se realizará la cita
+        reason:
+          type: string
+          title: Motivo de la consulta
+          description: Descripción del motivo de la cita
+        notes:
+          type: string
+          title: Notas adicionales
+          description: Notas o comentarios adicionales sobre la cita
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          title: Estado de la cita
+      required:
+      - date
+      - doctor
+      - patient
+      - reason
+      - time
+    AppointmentUpdateRequest:
+      type: object
+      description: |-
+        Serializer para actualizar citas existentes.
+        Incluye validaciones específicas para la actualización.
+      properties:
+        doctor:
+          type: integer
+        patient:
+          type: integer
+          title: Paciente
+        date:
+          type: string
+          format: date
+          title: Fecha de la cita
+          description: Fecha en que se realizará la cita
+        time:
+          type: string
+          format: time
+          title: Hora de la cita
+          description: Hora en que se realizará la cita
+        reason:
+          type: string
+          minLength: 1
+          title: Motivo de la consulta
+          description: Descripción del motivo de la cita
+        notes:
+          type: string
+          title: Notas adicionales
+          description: Notas o comentarios adicionales sobre la cita
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          title: Estado de la cita
+      required:
+      - date
+      - doctor
+      - patient
+      - reason
+      - time
+    BlankEnum:
+      enum:
+      - ''
+    ChangePasswordRequest:
+      type: object
+      description: Serializer para cambiar la contraseña del usuario.
+      properties:
+        old_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        new_password_confirm:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - new_password
+      - new_password_confirm
+      - old_password
+    CustomTokenObtainPair:
+      type: object
+      description: |-
+        Serializer personalizado para obtener tokens JWT.
+        Permite login con email o username.
+      properties:
+        email_or_username:
+          type: string
+      required:
+      - email_or_username
+    CustomTokenObtainPairRequest:
+      type: object
+      description: |-
+        Serializer personalizado para obtener tokens JWT.
+        Permite login con email o username.
+      properties:
+        email_or_username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email_or_username
+      - password
+    Doctor:
+      type: object
+      description: |-
+        Serializer principal para el modelo Doctor.
+        Incluye información del usuario relacionado y campos calculados.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          title: Usuario
+          description: Usuario asociado al doctor
+        first_name:
+          type: string
+          readOnly: true
+        last_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        medical_license:
+          type: string
+          title: Licencia Médica
+          description: Número único de licencia médica
+          maxLength: 50
+        specialization:
+          type: string
+          title: Especialización
+          description: Especialidad médica del doctor
+          maxLength: 100
+        years_experience:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Años de Experiencia
+          description: Años de experiencia profesional
+        consultation_fee:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Tarifa de Consulta
+          description: Costo de la consulta médica
+        bio:
+          type: string
+          title: Biografía
+          description: Información adicional sobre el doctor
+        is_available:
+          type: boolean
+          title: Disponible
+          description: Indica si el doctor está disponible para citas
+        appointments:
+          type: string
+          readOnly: true
+        appointments_count:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de Creación
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de Actualización
+      required:
+      - appointments
+      - appointments_count
+      - consultation_fee
+      - created_at
+      - email
+      - first_name
+      - full_name
+      - id
+      - last_name
+      - medical_license
+      - specialization
+      - updated_at
+      - user
+      - years_experience
+    DoctorCreate:
+      type: object
+      description: |-
+        Serializer para crear nuevos doctores.
+        Incluye validaciones específicas para la creación.
+      properties:
+        medical_license:
+          type: string
+          title: Licencia Médica
+          description: Número único de licencia médica
+          maxLength: 50
+        specialization:
+          type: string
+          title: Especialización
+          description: Especialidad médica del doctor
+          maxLength: 100
+        years_experience:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Años de Experiencia
+          description: Años de experiencia profesional
+        consultation_fee:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Tarifa de Consulta
+          description: Costo de la consulta médica
+        bio:
+          type: string
+          title: Biografía
+          description: Información adicional sobre el doctor
+        is_available:
+          type: boolean
+          title: Disponible
+          description: Indica si el doctor está disponible para citas
+      required:
+      - consultation_fee
+      - medical_license
+      - specialization
+      - years_experience
+    DoctorCreateRequest:
+      type: object
+      description: |-
+        Serializer para crear nuevos doctores.
+        Incluye validaciones específicas para la creación.
+      properties:
+        user_id:
+          type: integer
+          writeOnly: true
+        medical_license:
+          type: string
+          minLength: 1
+          title: Licencia Médica
+          description: Número único de licencia médica
+          maxLength: 50
+        specialization:
+          type: string
+          minLength: 1
+          title: Especialización
+          description: Especialidad médica del doctor
+          maxLength: 100
+        years_experience:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Años de Experiencia
+          description: Años de experiencia profesional
+        consultation_fee:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Tarifa de Consulta
+          description: Costo de la consulta médica
+        bio:
+          type: string
+          title: Biografía
+          description: Información adicional sobre el doctor
+        is_available:
+          type: boolean
+          title: Disponible
+          description: Indica si el doctor está disponible para citas
+      required:
+      - consultation_fee
+      - medical_license
+      - specialization
+      - user_id
+      - years_experience
+    DoctorList:
+      type: object
+      description: |-
+        Serializer optimizado para listados de doctores.
+        Incluye solo los campos esenciales para mejorar performance.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        specialization:
+          type: string
+          title: Especialización
+          description: Especialidad médica del doctor
+          maxLength: 100
+        years_experience:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Años de Experiencia
+          description: Años de experiencia profesional
+        consultation_fee:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Tarifa de Consulta
+          description: Costo de la consulta médica
+        is_available:
+          type: boolean
+          title: Disponible
+          description: Indica si el doctor está disponible para citas
+      required:
+      - consultation_fee
+      - email
+      - full_name
+      - id
+      - specialization
+      - years_experience
+    DoctorListRequest:
+      type: object
+      description: |-
+        Serializer optimizado para listados de doctores.
+        Incluye solo los campos esenciales para mejorar performance.
+      properties:
+        specialization:
+          type: string
+          minLength: 1
+          title: Especialización
+          description: Especialidad médica del doctor
+          maxLength: 100
+        years_experience:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Años de Experiencia
+          description: Años de experiencia profesional
+        consultation_fee:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Tarifa de Consulta
+          description: Costo de la consulta médica
+        is_available:
+          type: boolean
+          title: Disponible
+          description: Indica si el doctor está disponible para citas
+      required:
+      - consultation_fee
+      - specialization
+      - years_experience
+    DoctorUpdate:
+      type: object
+      description: |-
+        Serializer para actualizar doctores existentes.
+        Excluye campos que no deberían modificarse después de la creación.
+      properties:
+        specialization:
+          type: string
+          title: Especialización
+          description: Especialidad médica del doctor
+          maxLength: 100
+        years_experience:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Años de Experiencia
+          description: Años de experiencia profesional
+        consultation_fee:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Tarifa de Consulta
+          description: Costo de la consulta médica
+        bio:
+          type: string
+          title: Biografía
+          description: Información adicional sobre el doctor
+        is_available:
+          type: boolean
+          title: Disponible
+          description: Indica si el doctor está disponible para citas
+      required:
+      - consultation_fee
+      - specialization
+      - years_experience
+    DoctorUpdateRequest:
+      type: object
+      description: |-
+        Serializer para actualizar doctores existentes.
+        Excluye campos que no deberían modificarse después de la creación.
+      properties:
+        specialization:
+          type: string
+          minLength: 1
+          title: Especialización
+          description: Especialidad médica del doctor
+          maxLength: 100
+        years_experience:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Años de Experiencia
+          description: Años de experiencia profesional
+        consultation_fee:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Tarifa de Consulta
+          description: Costo de la consulta médica
+        bio:
+          type: string
+          title: Biografía
+          description: Información adicional sobre el doctor
+        is_available:
+          type: boolean
+          title: Disponible
+          description: Indica si el doctor está disponible para citas
+      required:
+      - consultation_fee
+      - specialization
+      - years_experience
+    GenderEnum:
+      enum:
+      - M
+      - F
+      - O
+      type: string
+      description: |-
+        * `M` - Masculino
+        * `F` - Femenino
+        * `O` - Otro
+    NullEnum:
+      enum:
+      - null
+    PaginatedAppointmentListList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppointmentList'
+    PaginatedDoctorListList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DoctorList'
+    PaginatedPatientListList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PatientList'
+    PaginatedSecretaryProfileList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecretaryProfile'
+    PaginatedUserList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    PatchedAppointmentUpdateRequest:
+      type: object
+      description: |-
+        Serializer para actualizar citas existentes.
+        Incluye validaciones específicas para la actualización.
+      properties:
+        doctor:
+          type: integer
+        patient:
+          type: integer
+          title: Paciente
+        date:
+          type: string
+          format: date
+          title: Fecha de la cita
+          description: Fecha en que se realizará la cita
+        time:
+          type: string
+          format: time
+          title: Hora de la cita
+          description: Hora en que se realizará la cita
+        reason:
+          type: string
+          minLength: 1
+          title: Motivo de la consulta
+          description: Descripción del motivo de la cita
+        notes:
+          type: string
+          title: Notas adicionales
+          description: Notas o comentarios adicionales sobre la cita
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          title: Estado de la cita
+    PatchedDoctorUpdateRequest:
+      type: object
+      description: |-
+        Serializer para actualizar doctores existentes.
+        Excluye campos que no deberían modificarse después de la creación.
+      properties:
+        specialization:
+          type: string
+          minLength: 1
+          title: Especialización
+          description: Especialidad médica del doctor
+          maxLength: 100
+        years_experience:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: Años de Experiencia
+          description: Años de experiencia profesional
+        consultation_fee:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Tarifa de Consulta
+          description: Costo de la consulta médica
+        bio:
+          type: string
+          title: Biografía
+          description: Información adicional sobre el doctor
+        is_available:
+          type: boolean
+          title: Disponible
+          description: Indica si el doctor está disponible para citas
+    PatchedPatientUpdateRequest:
+      type: object
+      description: |-
+        Serializer para actualizar información del paciente.
+        Excluye campos que no deben ser modificables.
+      properties:
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          title: Fecha de nacimiento
+        gender:
+          nullable: true
+          title: Género
+          oneOf:
+          - $ref: '#/components/schemas/GenderEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        phone_number:
+          type: string
+          nullable: true
+          title: Número de teléfono
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        address:
+          type: string
+          nullable: true
+          title: Dirección
+        blood_type:
+          type: string
+          nullable: true
+          title: Tipo de sangre
+          maxLength: 3
+        allergies:
+          type: string
+          nullable: true
+          title: Alergias
+        medical_conditions:
+          type: string
+          nullable: true
+          title: Condiciones médicas
+        medications:
+          type: string
+          nullable: true
+          title: Medicamentos actuales
+        emergency_contact_name:
+          type: string
+          nullable: true
+          title: Nombre del contacto de emergencia
+          maxLength: 100
+        emergency_contact_phone:
+          type: string
+          nullable: true
+          title: Teléfono del contacto de emergencia
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        emergency_contact_relationship:
+          type: string
+          nullable: true
+          title: Relación con el contacto de emergencia
+          maxLength: 50
+    PatchedSecretaryProfileRequest:
+      type: object
+      description: |-
+        Serializer para el perfil completo del secretario/a.
+        Incluye información del usuario y campos específicos del secretario.
+        Compatible con la interfaz SecretaryProfile del frontend.
+      properties:
+        employee_id:
+          type: string
+          minLength: 1
+          title: ID de Empleado
+          description: Identificador único del empleado
+          maxLength: 20
+        department:
+          type: string
+          minLength: 1
+          title: Departamento
+          description: Departamento donde trabaja la secretaria
+          maxLength: 100
+        shift_start:
+          type: string
+          format: time
+          title: Inicio de Turno
+          description: Hora de inicio del turno de trabajo
+        shift_end:
+          type: string
+          format: time
+          title: Fin de Turno
+          description: Hora de fin del turno de trabajo
+        can_manage_appointments:
+          type: boolean
+          title: Puede Gestionar Citas
+          description: Permiso para crear, modificar y cancelar citas
+        can_manage_patients:
+          type: boolean
+          title: Puede Gestionar Pacientes
+          description: Permiso para gestionar información de pacientes
+    PatchedUserProfileRequest:
+      type: object
+      description: Serializer para actualizar el perfil del usuario.
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          title: Correo electrónico
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+          title: Teléfono
+          description: Número de teléfono del usuario
+          maxLength: 15
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          title: Fecha de nacimiento
+        address:
+          type: string
+          title: Dirección
+          description: Dirección completa del usuario
+    Patient:
+      type: object
+      description: |-
+        Serializer completo para el modelo Patient.
+        Incluye información del usuario relacionado y campos calculados.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        first_name:
+          type: string
+          readOnly: true
+        last_name:
+          type: string
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          title: Fecha de nacimiento
+        age:
+          type: string
+          readOnly: true
+        gender:
+          nullable: true
+          title: Género
+          oneOf:
+          - $ref: '#/components/schemas/GenderEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        phone_number:
+          type: string
+          nullable: true
+          title: Número de teléfono
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        address:
+          type: string
+          nullable: true
+          title: Dirección
+        blood_type:
+          type: string
+          nullable: true
+          title: Tipo de sangre
+          maxLength: 3
+        allergies:
+          type: string
+          nullable: true
+          title: Alergias
+        medical_conditions:
+          type: string
+          nullable: true
+          title: Condiciones médicas
+        medications:
+          type: string
+          nullable: true
+          title: Medicamentos actuales
+        emergency_contact_name:
+          type: string
+          nullable: true
+          title: Nombre del contacto de emergencia
+          maxLength: 100
+        emergency_contact_phone:
+          type: string
+          nullable: true
+          title: Teléfono del contacto de emergencia
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        emergency_contact_relationship:
+          type: string
+          nullable: true
+          title: Relación con el contacto de emergencia
+          maxLength: 50
+        medical_summary:
+          type: string
+          readOnly: true
+        appointments:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de creación
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de actualización
+      required:
+      - age
+      - appointments
+      - created_at
+      - email
+      - first_name
+      - full_name
+      - id
+      - last_name
+      - medical_summary
+      - updated_at
+      - username
+    PatientCreate:
+      type: object
+      description: |-
+        Serializer para crear un nuevo paciente.
+        Incluye validaciones específicas para la creación.
+      properties:
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          title: Fecha de nacimiento
+        gender:
+          nullable: true
+          title: Género
+          oneOf:
+          - $ref: '#/components/schemas/GenderEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        phone_number:
+          type: string
+          nullable: true
+          title: Número de teléfono
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        address:
+          type: string
+          nullable: true
+          title: Dirección
+        blood_type:
+          type: string
+          nullable: true
+          title: Tipo de sangre
+          maxLength: 3
+        allergies:
+          type: string
+          nullable: true
+          title: Alergias
+        medical_conditions:
+          type: string
+          nullable: true
+          title: Condiciones médicas
+        medications:
+          type: string
+          nullable: true
+          title: Medicamentos actuales
+        emergency_contact_name:
+          type: string
+          nullable: true
+          title: Nombre del contacto de emergencia
+          maxLength: 100
+        emergency_contact_phone:
+          type: string
+          nullable: true
+          title: Teléfono del contacto de emergencia
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        emergency_contact_relationship:
+          type: string
+          nullable: true
+          title: Relación con el contacto de emergencia
+          maxLength: 50
+    PatientCreateRequest:
+      type: object
+      description: |-
+        Serializer para crear un nuevo paciente.
+        Incluye validaciones específicas para la creación.
+      properties:
+        user_id:
+          type: integer
+          writeOnly: true
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          title: Fecha de nacimiento
+        gender:
+          nullable: true
+          title: Género
+          oneOf:
+          - $ref: '#/components/schemas/GenderEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        phone_number:
+          type: string
+          nullable: true
+          title: Número de teléfono
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        address:
+          type: string
+          nullable: true
+          title: Dirección
+        blood_type:
+          type: string
+          nullable: true
+          title: Tipo de sangre
+          maxLength: 3
+        allergies:
+          type: string
+          nullable: true
+          title: Alergias
+        medical_conditions:
+          type: string
+          nullable: true
+          title: Condiciones médicas
+        medications:
+          type: string
+          nullable: true
+          title: Medicamentos actuales
+        emergency_contact_name:
+          type: string
+          nullable: true
+          title: Nombre del contacto de emergencia
+          maxLength: 100
+        emergency_contact_phone:
+          type: string
+          nullable: true
+          title: Teléfono del contacto de emergencia
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        emergency_contact_relationship:
+          type: string
+          nullable: true
+          title: Relación con el contacto de emergencia
+          maxLength: 50
+      required:
+      - user_id
+    PatientList:
+      type: object
+      description: |-
+        Serializer simplificado para listar pacientes.
+        Incluye solo información esencial para listados.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        age:
+          type: string
+          readOnly: true
+        gender:
+          nullable: true
+          title: Género
+          oneOf:
+          - $ref: '#/components/schemas/GenderEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        phone_number:
+          type: string
+          nullable: true
+          title: Número de teléfono
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de creación
+      required:
+      - age
+      - created_at
+      - email
+      - full_name
+      - id
+    PatientListRequest:
+      type: object
+      description: |-
+        Serializer simplificado para listar pacientes.
+        Incluye solo información esencial para listados.
+      properties:
+        gender:
+          nullable: true
+          title: Género
+          oneOf:
+          - $ref: '#/components/schemas/GenderEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        phone_number:
+          type: string
+          nullable: true
+          title: Número de teléfono
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+    PatientUpdate:
+      type: object
+      description: |-
+        Serializer para actualizar información del paciente.
+        Excluye campos que no deben ser modificables.
+      properties:
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          title: Fecha de nacimiento
+        gender:
+          nullable: true
+          title: Género
+          oneOf:
+          - $ref: '#/components/schemas/GenderEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        phone_number:
+          type: string
+          nullable: true
+          title: Número de teléfono
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        address:
+          type: string
+          nullable: true
+          title: Dirección
+        blood_type:
+          type: string
+          nullable: true
+          title: Tipo de sangre
+          maxLength: 3
+        allergies:
+          type: string
+          nullable: true
+          title: Alergias
+        medical_conditions:
+          type: string
+          nullable: true
+          title: Condiciones médicas
+        medications:
+          type: string
+          nullable: true
+          title: Medicamentos actuales
+        emergency_contact_name:
+          type: string
+          nullable: true
+          title: Nombre del contacto de emergencia
+          maxLength: 100
+        emergency_contact_phone:
+          type: string
+          nullable: true
+          title: Teléfono del contacto de emergencia
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        emergency_contact_relationship:
+          type: string
+          nullable: true
+          title: Relación con el contacto de emergencia
+          maxLength: 50
+    PatientUpdateRequest:
+      type: object
+      description: |-
+        Serializer para actualizar información del paciente.
+        Excluye campos que no deben ser modificables.
+      properties:
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          title: Fecha de nacimiento
+        gender:
+          nullable: true
+          title: Género
+          oneOf:
+          - $ref: '#/components/schemas/GenderEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        phone_number:
+          type: string
+          nullable: true
+          title: Número de teléfono
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        address:
+          type: string
+          nullable: true
+          title: Dirección
+        blood_type:
+          type: string
+          nullable: true
+          title: Tipo de sangre
+          maxLength: 3
+        allergies:
+          type: string
+          nullable: true
+          title: Alergias
+        medical_conditions:
+          type: string
+          nullable: true
+          title: Condiciones médicas
+        medications:
+          type: string
+          nullable: true
+          title: Medicamentos actuales
+        emergency_contact_name:
+          type: string
+          nullable: true
+          title: Nombre del contacto de emergencia
+          maxLength: 100
+        emergency_contact_phone:
+          type: string
+          nullable: true
+          title: Teléfono del contacto de emergencia
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        emergency_contact_relationship:
+          type: string
+          nullable: true
+          title: Relación con el contacto de emergencia
+          maxLength: 50
+    RoleEnum:
+      enum:
+      - client
+      - doctor
+      - secretary
+      - admin
+      - superadmin
+      type: string
+      description: |-
+        * `client` - Cliente
+        * `doctor` - Doctor
+        * `secretary` - Secretario/a
+        * `admin` - Administrador
+        * `superadmin` - Super Administrador
+    SecretaryProfile:
+      type: object
+      description: |-
+        Serializer para el perfil completo del secretario/a.
+        Incluye información del usuario y campos específicos del secretario.
+        Compatible con la interfaz SecretaryProfile del frontend.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        employee_id:
+          type: string
+          title: ID de Empleado
+          description: Identificador único del empleado
+          maxLength: 20
+        department:
+          type: string
+          title: Departamento
+          description: Departamento donde trabaja la secretaria
+          maxLength: 100
+        shift_start:
+          type: string
+          format: time
+          title: Inicio de Turno
+          description: Hora de inicio del turno de trabajo
+        shift_end:
+          type: string
+          format: time
+          title: Fin de Turno
+          description: Hora de fin del turno de trabajo
+        shift_duration:
+          type: string
+          readOnly: true
+        is_working_now:
+          type: string
+          readOnly: true
+        can_manage_appointments:
+          type: boolean
+          title: Puede Gestionar Citas
+          description: Permiso para crear, modificar y cancelar citas
+        can_manage_patients:
+          type: boolean
+          title: Puede Gestionar Pacientes
+          description: Permiso para gestionar información de pacientes
+        permissions_summary:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de Creación
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de Actualización
+      required:
+      - created_at
+      - department
+      - employee_id
+      - full_name
+      - id
+      - is_working_now
+      - permissions_summary
+      - shift_duration
+      - shift_end
+      - shift_start
+      - updated_at
+      - user
+    SecretaryProfileRequest:
+      type: object
+      description: |-
+        Serializer para el perfil completo del secretario/a.
+        Incluye información del usuario y campos específicos del secretario.
+        Compatible con la interfaz SecretaryProfile del frontend.
+      properties:
+        employee_id:
+          type: string
+          minLength: 1
+          title: ID de Empleado
+          description: Identificador único del empleado
+          maxLength: 20
+        department:
+          type: string
+          minLength: 1
+          title: Departamento
+          description: Departamento donde trabaja la secretaria
+          maxLength: 100
+        shift_start:
+          type: string
+          format: time
+          title: Inicio de Turno
+          description: Hora de inicio del turno de trabajo
+        shift_end:
+          type: string
+          format: time
+          title: Fin de Turno
+          description: Hora de fin del turno de trabajo
+        can_manage_appointments:
+          type: boolean
+          title: Puede Gestionar Citas
+          description: Permiso para crear, modificar y cancelar citas
+        can_manage_patients:
+          type: boolean
+          title: Puede Gestionar Pacientes
+          description: Permiso para gestionar información de pacientes
+      required:
+      - department
+      - employee_id
+      - shift_end
+      - shift_start
+    StatusEnum:
+      enum:
+      - scheduled
+      - confirmed
+      - completed
+      - cancelled
+      - no_show
+      type: string
+      description: |-
+        * `scheduled` - Programada
+        * `confirmed` - Confirmada
+        * `completed` - Completada
+        * `cancelled` - Cancelada
+        * `no_show` - No se presentó
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
+    TokenVerifyRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - token
+    User:
+      type: object
+      description: |-
+        Serializer para mostrar información del usuario.
+        Incluye soporte para todos los roles: client, doctor, secretary, admin, superadmin.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+        email:
+          type: string
+          format: email
+          title: Correo electrónico
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        full_name:
+          type: string
+          readOnly: true
+        phone:
+          type: string
+          title: Teléfono
+          description: Número de teléfono del usuario
+          maxLength: 15
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: Rol
+          description: |-
+            Rol del usuario en el sistema
+
+            * `client` - Cliente
+            * `doctor` - Doctor
+            * `secretary` - Secretario/a
+            * `admin` - Administrador
+            * `superadmin` - Super Administrador
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          title: Fecha de nacimiento
+        address:
+          type: string
+          title: Dirección
+          description: Dirección completa del usuario
+        is_active:
+          type: boolean
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        is_staff:
+          type: boolean
+          readOnly: true
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        is_superuser:
+          type: boolean
+          readOnly: true
+          title: Superuser status
+          description: Designates that this user has all permissions without explicitly
+            assigning them.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de creación
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de actualización
+        is_doctor:
+          type: boolean
+          readOnly: true
+        is_secretary:
+          type: boolean
+          readOnly: true
+        is_client:
+          type: boolean
+          readOnly: true
+        is_admin:
+          type: boolean
+          readOnly: true
+        is_superadmin:
+          type: boolean
+          readOnly: true
+      required:
+      - created_at
+      - email
+      - full_name
+      - id
+      - is_admin
+      - is_client
+      - is_doctor
+      - is_secretary
+      - is_staff
+      - is_superadmin
+      - is_superuser
+      - updated_at
+      - username
+    UserProfile:
+      type: object
+      description: Serializer para actualizar el perfil del usuario.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+        email:
+          type: string
+          format: email
+          title: Correo electrónico
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        full_name:
+          type: string
+          readOnly: true
+        phone:
+          type: string
+          title: Teléfono
+          description: Número de teléfono del usuario
+          maxLength: 15
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          title: Fecha de nacimiento
+        address:
+          type: string
+          title: Dirección
+          description: Dirección completa del usuario
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de creación
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de actualización
+      required:
+      - created_at
+      - email
+      - full_name
+      - id
+      - updated_at
+      - username
+    UserProfileRequest:
+      type: object
+      description: Serializer para actualizar el perfil del usuario.
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          title: Correo electrónico
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+          title: Teléfono
+          description: Número de teléfono del usuario
+          maxLength: 15
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          title: Fecha de nacimiento
+        address:
+          type: string
+          title: Dirección
+          description: Dirección completa del usuario
+      required:
+      - email
+    UserRegistration:
+      type: object
+      description: Serializer para el registro de nuevos usuarios.
+      properties:
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Correo electrónico
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+          title: Teléfono
+          description: Número de teléfono del usuario
+          maxLength: 15
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          title: Fecha de nacimiento
+        address:
+          type: string
+          title: Dirección
+          description: Dirección completa del usuario
+      required:
+      - email
+      - first_name
+      - last_name
+      - username
+    UserRegistrationRequest:
+      type: object
+      description: Serializer para el registro de nuevos usuarios.
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+          title: Correo electrónico
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        password_confirm:
+          type: string
+          writeOnly: true
+          minLength: 1
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+          title: Teléfono
+          description: Número de teléfono del usuario
+          maxLength: 15
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          title: Fecha de nacimiento
+        address:
+          type: string
+          title: Dirección
+          description: Dirección completa del usuario
+      required:
+      - email
+      - first_name
+      - last_name
+      - password
+      - password_confirm
+      - username
+    UserRequest:
+      type: object
+      description: |-
+        Serializer para mostrar información del usuario.
+        Incluye soporte para todos los roles: client, doctor, secretary, admin, superadmin.
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          title: Correo electrónico
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+          title: Teléfono
+          description: Número de teléfono del usuario
+          maxLength: 15
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: Rol
+          description: |-
+            Rol del usuario en el sistema
+
+            * `client` - Cliente
+            * `doctor` - Doctor
+            * `secretary` - Secretario/a
+            * `admin` - Administrador
+            * `superadmin` - Super Administrador
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          title: Fecha de nacimiento
+        address:
+          type: string
+          title: Dirección
+          description: Dirección completa del usuario
+        is_active:
+          type: boolean
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+      required:
+      - email
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

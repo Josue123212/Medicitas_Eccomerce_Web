@@ -1,0 +1,127 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Cancelación de Cita - Sistema de Citas Médicas{% endblock %}
+
+{% block content %}
+<h2>❌ Cancelación de Cita Médica</h2>
+
+<p>Estimado/a <strong>{{ patient_name }}</strong>,</p>
+
+{% if cancelled_by_patient %}
+<p>Hemos recibido su solicitud de cancelación y confirmamos que su cita médica ha sido <strong>cancelada exitosamente</strong>.</p>
+{% else %}
+<p>Lamentamos informarle que su cita médica ha sido <strong>cancelada</strong> {% if cancellation_reason %}debido a: <em>{{ cancellation_reason }}</em>{% endif %}.</p>
+{% endif %}
+
+<div class="appointment-details">
+    <h3>📋 Detalles de la Cita Cancelada</h3>
+    
+    <div class="detail-row">
+        <span class="detail-label">👨‍⚕️ Doctor:</span>
+        <span class="detail-value">Dr. {{ doctor_name }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">🏥 Especialidad:</span>
+        <span class="detail-value">{{ doctor_specialty }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">📅 Fecha Original:</span>
+        <span class="detail-value">{{ appointment_date|date:"l, d \d\e F \d\e Y" }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">🕐 Hora Original:</span>
+        <span class="detail-value">{{ appointment_time|time:"H:i" }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">📅 Fecha de Cancelación:</span>
+        <span class="detail-value">{{ cancellation_date|date:"d \d\e F \d\e Y \a \l\a\s H:i" }}</span>
+    </div>
+    
+    {% if cancellation_reason %}
+    <div class="detail-row">
+        <span class="detail-label">📝 Motivo:</span>
+        <span class="detail-value">{{ cancellation_reason }}</span>
+    </div>
+    {% endif %}
+</div>
+
+{% if not cancelled_by_patient %}
+<div class="alert warning">
+    <strong>⚠️ Disculpas por la Inconveniencia</strong><br>
+    Entendemos que esta cancelación puede causarle molestias. Nuestro equipo está trabajando para 
+    minimizar estas situaciones y brindarle el mejor servicio posible.
+</div>
+{% endif %}
+
+{% if refund_info %}
+<div class="alert info">
+    <strong>💰 Información de Reembolso:</strong><br>
+    {{ refund_info }}
+</div>
+{% endif %}
+
+{% if show_reschedule_options %}
+<div class="alert success">
+    <strong>📅 ¿Desea Reprogramar?</strong><br>
+    Puede programar una nueva cita de forma rápida y sencilla utilizando nuestro sistema en línea.
+</div>
+
+<div style="text-align: center; margin: 25px 0;">
+    {% if reschedule_url %}
+    <a href="{{ reschedule_url }}" class="button success">📅 Programar Nueva Cita</a>
+    {% endif %}
+    
+    {% if available_slots_url %}
+    <a href="{{ available_slots_url }}" class="button">👀 Ver Horarios Disponibles</a>
+    {% endif %}
+</div>
+
+{% if suggested_dates %}
+<div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <h4 style="margin-top: 0; color: #28a745;">🗓️ Horarios Sugeridos Disponibles:</h4>
+    <ul style="margin: 10px 0; padding-left: 20px;">
+        {% for date in suggested_dates %}
+        <li><strong>{{ date.date|date:"l, d \d\e F" }}</strong> a las <strong>{{ date.time|time:"H:i" }}</strong></li>
+        {% endfor %}
+    </ul>
+    <p style="margin-bottom: 0; font-size: 14px; color: #666;">
+        <em>Estos horarios están sujetos a disponibilidad al momento de la reserva.</em>
+    </p>
+</div>
+{% endif %}
+{% endif %}
+
+{% if contact_info %}
+<div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+    <strong>📞 ¿Necesita Ayuda?</strong><br>
+    Si tiene alguna pregunta o necesita asistencia para reprogramar, nuestro equipo está aquí para ayudarle:
+    <ul style="margin: 10px 0; padding-left: 20px;">
+        <li><strong>Teléfono:</strong> {{ contact_phone|default:"+1 (555) 123-4567" }}</li>
+        <li><strong>Email:</strong> {{ contact_email|default:"citas@citasmedicas.com" }}</li>
+        <li><strong>Horario:</strong> Lunes a Viernes, 8:00 AM - 6:00 PM</li>
+    </ul>
+</div>
+{% endif %}
+
+{% if cancelled_by_patient %}
+<p>Gracias por utilizar nuestro sistema de citas. Esperamos poder atenderle en una próxima ocasión.</p>
+{% else %}
+<p>Nuevamente, nos disculpamos por cualquier inconveniente causado y esperamos poder atenderle pronto.</p>
+{% endif %}
+
+<p>Atentamente,<br>
+<strong>Equipo del Sistema de Citas Médicas</strong></p>
+
+{% if feedback_url %}
+<div style="text-align: center; margin-top: 25px; padding: 15px; background-color: #f1f3f4; border-radius: 5px;">
+    <p style="margin: 0; font-size: 14px;">
+        <strong>Su opinión es importante para nosotros</strong><br>
+        <a href="{{ feedback_url }}" style="color: #007bff; text-decoration: none;">Comparta su experiencia</a>
+    </p>
+</div>
+{% endif %}
+{% endblock %}

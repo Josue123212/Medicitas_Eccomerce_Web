@@ -1,0 +1,6 @@
+/* 🎨 ARCHIVO PADRE - Sistema de herencia de colores */
+@import './styles/theme.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

@@ -1,0 +1,86 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Confirmación de Cita - Sistema de Citas Médicas{% endblock %}
+
+{% block content %}
+<h2>✅ Confirmación de Cita Médica</h2>
+
+<p>Estimado/a <strong>{{ patient_name }}</strong>,</p>
+
+<p>Su cita médica ha sido <strong>confirmada exitosamente</strong>. A continuación encontrará todos los detalles:</p>
+
+<div class="appointment-details">
+    <h3>📋 Detalles de la Cita</h3>
+    
+    <div class="detail-row">
+        <span class="detail-label">👨‍⚕️ Doctor:</span>
+        <span class="detail-value">Dr. {{ doctor_name }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">🏥 Especialidad:</span>
+        <span class="detail-value">{{ doctor_specialty }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">📅 Fecha:</span>
+        <span class="detail-value">{{ appointment_date|date:"l, d \d\e F \d\e Y" }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">🕐 Hora:</span>
+        <span class="detail-value">{{ appointment_time|time:"H:i" }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">📍 Ubicación:</span>
+        <span class="detail-value">{{ clinic_address|default:"Consultorio principal" }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">📞 Teléfono:</span>
+        <span class="detail-value">{{ clinic_phone|default:"+1 (555) 123-4567" }}</span>
+    </div>
+    
+    {% if appointment_notes %}
+    <div class="detail-row">
+        <span class="detail-label">📝 Notas:</span>
+        <span class="detail-value">{{ appointment_notes }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<div class="alert info">
+    <strong>📌 Información Importante:</strong>
+    <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>Por favor llegue <strong>15 minutos antes</strong> de su cita</li>
+        <li>Traiga su documento de identidad y tarjeta de seguro médico</li>
+        <li>Si necesita cancelar o reprogramar, hágalo con al menos <strong>24 horas de anticipación</strong></li>
+        {% if preparation_instructions %}
+        <li>{{ preparation_instructions }}</li>
+        {% endif %}
+    </ul>
+</div>
+
+{% if show_actions %}
+<div style="text-align: center; margin: 25px 0;">
+    {% if reschedule_url %}
+    <a href="{{ reschedule_url }}" class="button">📅 Reprogramar Cita</a>
+    {% endif %}
+    
+    {% if cancel_url %}
+    <a href="{{ cancel_url }}" class="button danger">❌ Cancelar Cita</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="alert success">
+    <strong>✅ ¡Su cita está confirmada!</strong><br>
+    Recibirá un recordatorio 24 horas antes de su cita.
+</div>
+
+<p>Si tiene alguna pregunta o necesita asistencia, no dude en contactarnos.</p>
+
+<p>Atentamente,<br>
+<strong>Equipo del Sistema de Citas Médicas</strong></p>
+{% endblock %}

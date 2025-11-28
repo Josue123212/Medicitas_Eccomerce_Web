@@ -1,0 +1,98 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Recordatorio de Cita - Sistema de Citas Médicas{% endblock %}
+
+{% block content %}
+<h2>⏰ Recordatorio de Cita Médica</h2>
+
+<p>Estimado/a <strong>{{ patient_name }}</strong>,</p>
+
+<p>Este es un recordatorio amigable de que tiene una <strong>cita médica programada</strong> para mañana.</p>
+
+<div class="appointment-details">
+    <h3>📋 Detalles de su Cita</h3>
+    
+    <div class="detail-row">
+        <span class="detail-label">👨‍⚕️ Doctor:</span>
+        <span class="detail-value">Dr. {{ doctor_name }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">🏥 Especialidad:</span>
+        <span class="detail-value">{{ doctor_specialty }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">📅 Fecha:</span>
+        <span class="detail-value">{{ appointment_date }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">🕐 Hora:</span>
+        <span class="detail-value">{{ appointment_time }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">📍 Ubicación:</span>
+        <span class="detail-value">{{ clinic_address|default:"Consultorio principal" }}</span>
+    </div>
+    
+    <div class="detail-row">
+        <span class="detail-label">📞 Teléfono:</span>
+        <span class="detail-value">{{ clinic_phone|default:"+1 (555) 123-4567" }}</span>
+    </div>
+</div>
+
+<div class="alert warning">
+    <strong>⚠️ Recordatorios Importantes:</strong>
+    <ul style="margin: 10px 0; padding-left: 20px;">
+        <li><strong>Llegue 15 minutos antes</strong> de su cita</li>
+        <li>Traiga su <strong>documento de identidad</strong></li>
+        <li>Traiga su <strong>tarjeta de seguro médico</strong></li>
+        <li>Traiga la <strong>lista de medicamentos</strong> que está tomando actualmente</li>
+        {% if preparation_instructions %}
+        <li><strong>Preparación especial:</strong> {{ preparation_instructions }}</li>
+        {% endif %}
+    </ul>
+</div>
+
+{% if fasting_required %}
+<div class="alert info">
+    <strong>🍽️ Ayuno Requerido:</strong><br>
+    Para esta cita es necesario que mantenga ayuno de {{ fasting_hours|default:"8" }} horas antes del examen.
+    No consuma alimentos ni bebidas (excepto agua) desde las {{ fasting_start_time }}.
+</div>
+{% endif %}
+
+{% if show_actions %}
+<div style="text-align: center; margin: 25px 0;">
+    <a href="{{ confirm_url }}" class="button success">✅ Confirmar Asistencia</a>
+    
+    {% if reschedule_url %}
+    <a href="{{ reschedule_url }}" class="button">📅 Reprogramar</a>
+    {% endif %}
+    
+    {% if cancel_url %}
+    <a href="{{ cancel_url }}" class="button danger">❌ Cancelar</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="alert info">
+    <strong>📱 ¿Necesita cancelar o reprogramar?</strong><br>
+    Si no puede asistir, por favor cancele o reprograme su cita con al menos <strong>24 horas de anticipación</strong> 
+    para que otro paciente pueda usar ese horario.
+</div>
+
+<p>Si tiene alguna pregunta o emergencia médica, no dude en contactarnos inmediatamente.</p>
+
+<p>Esperamos verle pronto,<br>
+<strong>Equipo del Sistema de Citas Médicas</strong></p>
+
+<div style="text-align: center; margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+    <p style="margin: 0; font-size: 14px; color: #666;">
+        <strong>Horario de atención:</strong> Lunes a Viernes 8:00 AM - 6:00 PM<br>
+        <strong>Emergencias:</strong> 24/7 - Teléfono: {{ emergency_phone|default:"+1 (555) 911-HELP" }}
+    </p>
+</div>
+{% endblock %}
