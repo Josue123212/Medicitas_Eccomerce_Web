@@ -127,6 +127,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.CustomPageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
 }
 
 # CORS configuration
@@ -362,3 +367,7 @@ MIDDLEWARE_LOGGING = {
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
 STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
 STRIPE_CURRENCY = config('STRIPE_CURRENCY', default='USD')
+
+# Local AI Service (Msty Studio)
+LOCAL_AI_ENDPOINT = config('LOCAL_AI_ENDPOINT', default='http://localhost:11964')
+LOCAL_AI_DEFAULT_MODEL = config('LOCAL_AI_DEFAULT_MODEL', default='')

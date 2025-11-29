@@ -4,13 +4,14 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import FloatingAppointmentCTA from '../../components/pharmacy/FloatingAppointmentCTA';
 import { useQuery } from '@tanstack/react-query';
-import { ecommerceService, type Product } from '../../services/ecommerceService';
+import { ecommerceService, type Product, type OfferSlide } from '../../services/ecommerceService';
 import CategoriesNav from '../../components/pharmacy/CategoriesNav';
 import { useSearchParams } from 'react-router-dom';
 import { useModal } from '../../components/ui/Modal';
 import FiltersDrawer from '../../components/pharmacy/FiltersDrawer';
 import CategoriesSidebar from '../../components/pharmacy/CategoriesSidebar';
 import CheckoutModal from '../../components/pharmacy/CheckoutModal';
+import ChatbotModal from '../../components/pharmacy/ChatbotModal';
 
 /**
  * 🛒 Catálogo (Autenticado) - Farmacia MediCitas
@@ -64,12 +65,23 @@ const promoSlides = [
   },
 ];
 
+const useOffers = () => {
+  const q = useQuery({
+    queryKey: ['ecommerce', 'offers'],
+    queryFn: () => ecommerceService.getOffers(),
+    staleTime: 2 * 60 * 1000,
+  });
+  const offers: OfferSlide[] = Array.isArray(q.data) ? (q.data as OfferSlide[]) : [];
+  return { ...q, offers };
+};
+
 const PharmacyCatalogPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
   const [params, setParams] = useSearchParams();
   const selectedCategoryId = params.get('category') ? Number(params.get('category')) : null;
   const { products, isLoading, error } = useProducts(selectedCategoryId);
+  const { offers } = useOffers();
   const filtersModal = useModal(false);
   const backendOrigin = (import.meta.env.VITE_BACKEND_ORIGIN as string) ?? 'http://localhost:8000';
 
@@ -81,6 +93,8 @@ const PharmacyCatalogPage: React.FC = () => {
   const [orders, setOrders] = React.useState<Array<{ id: number; status: string; total: number; currency?: string; created_at: string }>>([]);
   const [ordersLoading, setOrdersLoading] = React.useState(false);
   const [ordersError, setOrdersError] = React.useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState<Record<number, boolean>>({});
 
   const debugAuth = (label?: string) => {
     try {
@@ -290,20 +304,20 @@ const PharmacyCatalogPage: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
                 <div>
                   <h2 className="text-2xl sm:text-3xl font-semibold mb-2" style={{ color: 'var(--text-on-primary)' }}>
-                    {promoSlides[0].title}
+                    {(offers[0]?.title || promoSlides[0].title)}
                   </h2>
                   <p className="text-sm sm:text-base mb-5" style={{ color: 'var(--text-on-primary-90)' }}>
-                    {promoSlides[0].subtitle}
+                    {(offers[0]?.subtitle || promoSlides[0].subtitle)}
                   </p>
                   <div className="flex flex-wrap items-center gap-3">
-                    <Link to={promoSlides[0].ctaLink}>
+                    <Link to={(offers[0]?.ctaLink || promoSlides[0].ctaLink)}>
                       <button className="btn-white px-4 py-2 rounded-lg font-medium transition-colors" style={{ color: 'var(--primary)' }}>
-                        {promoSlides[0].ctaText}
+                        {(offers[0]?.ctaText || promoSlides[0].ctaText)}
                       </button>
                     </Link>
-                    <Link to="/pharmacy">
+                    <Link to="/pharmacy/offers">
                       <button className="btn-outline-white px-4 py-2 rounded-lg font-medium transition-colors">
-                        Más información
+                        Ver productos en oferta
                       </button>
                     </Link>
                   </div>
@@ -388,16 +402,30 @@ const PharmacyCatalogPage: React.FC = () => {
           )}
           {products.map((p) => {
             const isFav = favorites.includes(p.id);
+            const displayName = (p.name && p.name.trim()) ? p.name : ((p.title && String(p.title).trim()) ? String(p.title) : `Producto #${p.id}`);
+            const basePrice = Number(p.price?.amount ?? 0);
+            const salePrice = Number(p.price?.sale_amount ?? basePrice);
+            const hasDiscount = p.price?.sale_amount != null && salePrice < basePrice && basePrice > 0;
+            const discountPct = hasDiscount ? Math.round(((basePrice - salePrice) / basePrice) * 100) : 0;
             return (
               <div key={p.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition" style={{ border: '1px solid var(--border)' }}>
-                <div className="w-full h-32 mb-4 rounded-lg flex items-center justify-end relative overflow-hidden" style={{ backgroundColor: 'var(--primary)', opacity: 0.08 }}>
+                <div className="group w-full h-48 sm:h-56 mb-4 rounded-lg flex items-center justify-end relative overflow-hidden" style={{ backgroundColor: 'var(--surface)' }}>
+                  <div
+                    className="absolute inset-0"
+                    style={{ backgroundColor: 'var(--primary)', opacity: 0.08, display: imgLoaded[p.id] ? 'none' : 'block' }}
+                  />
                   {p.images?.[0]?.image ? (
                     <img
                       src={p.images[0].image.startsWith('http') ? p.images[0].image : `${backendOrigin}${p.images[0].image}`}
-                      alt={p.name}
-                      className="w-full h-full object-cover"
+                      alt={displayName}
+                      className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                      onLoad={() => setImgLoaded((prev) => ({ ...prev, [p.id]: true }))}
                     />
                   ) : null}
+                  <div className="absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-20 pointer-events-none" style={{ backgroundColor: 'black' }} />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <span className="material-icons transition-opacity duration-300 opacity-0 group-hover:opacity-100" style={{ color: 'var(--text-on-primary)' }}>zoom_in</span>
+                  </div>
                   {!isAuthenticated && (
                     <div className="absolute left-3 top-3 flex items-center gap-1 text-xs px-2 py-1 rounded-md"
                          style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
@@ -405,13 +433,24 @@ const PharmacyCatalogPage: React.FC = () => {
                       <span>Inicia sesión para usar funciones</span>
                     </div>
                   )}
+                  {hasDiscount && (
+                    <div className="absolute pointer-events-none" style={{ top: 0, left: 0, zIndex: 2 }}>
+                      <div style={{ position: 'absolute', top: 12, left: -28, width: 120, transform: 'rotate(-45deg)' }}>
+                        <div className="text-xs font-semibold" style={{ backgroundColor: 'var(--primary)', color: 'var(--text-on-primary)', padding: '4px 0', textAlign: 'center', borderRadius: 3 }}>
+                          En oferta {discountPct ? `-${discountPct}%` : ''}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <button
                     aria-label={isFav ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                    aria-pressed={isFav}
                     onClick={() => (isAuthenticated ? toggleFavorite(p.id) : requireAuth('Favoritos'))}
-                    className="w-9 h-9 rounded-full flex items-center justify-center mr-2"
+                    className="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-transform hover:scale-105"
                     style={{
-                      backgroundColor: isFav ? 'color-mix(in srgb, var(--primary), black 10%)' : 'var(--surface)',
-                      border: '1px solid var(--border)'
+                      backgroundColor: 'var(--surface)',
+                      border: isFav ? '1px solid var(--primary)' : '1px solid var(--border)',
+                      zIndex: 2
                     }}
                   >
                     <span className="material-icons" style={{ color: isFav ? 'var(--primary)' : 'var(--text-secondary)' }}>
@@ -419,12 +458,19 @@ const PharmacyCatalogPage: React.FC = () => {
                     </span>
                   </button>
                 </div>
-                <h3 className="text-lg font-medium mb-1" style={{ color: 'var(--text-primary)' }}>{p.name}</h3>
+                <h3 className="text-lg font-medium mb-1" style={{ color: 'var(--text-primary)' }}>{displayName}</h3>
                 <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>{p.description}</p>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
-                    {new Intl.NumberFormat('es-ES', { style: 'currency', currency: (p.price?.currency ?? 'USD') }).format(Number(p.price?.sale_amount ?? p.price?.amount ?? 0))}
-                  </span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+                      {new Intl.NumberFormat('es-ES', { style: 'currency', currency: (p.price?.currency ?? 'USD') }).format(hasDiscount ? salePrice : basePrice)}
+                    </span>
+                    {hasDiscount && (
+                      <span className="text-sm line-through" style={{ color: 'var(--text-secondary)' }}>
+                        {new Intl.NumberFormat('es-ES', { style: 'currency', currency: (p.price?.currency ?? 'USD') }).format(basePrice)}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2">
                     <button
                       className="btn-outline px-3 py-2 rounded-md text-sm"
@@ -444,6 +490,13 @@ const PharmacyCatalogPage: React.FC = () => {
                     </button>
                   </div>
                 </div>
+                {p.price?.sale_amount != null && Number(p.price.sale_amount) < Number(p.price.amount ?? 0) && (
+                  <div className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded-md mb-3"
+                       style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--primary)', color: 'var(--primary)' }}>
+                    <span className="material-icons" style={{ fontSize: 14 }}>local_offer</span>
+                    <span>En oferta</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <Link to={`/pharmacy/product/${p.id}`}>
                     <button className="btn-secondary px-3 py-2 rounded-md text-sm">Ver detalles</button>
@@ -535,34 +588,54 @@ const PharmacyCatalogPage: React.FC = () => {
 
       {/* Botón flotante para agendar nueva cita (solo clientes) */}
       {isAuthenticated && <FloatingAppointmentCTA />}
-      <button
-        onClick={() => navigate('/pharmacy/cart')}
-        className="fixed z-50 rounded-full shadow-lg flex items-center justify-center"
-        style={{
-          bottom: 24,
-          right: 24,
-          width: 56,
-          height: 56,
-          background: 'linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary), black 25%))',
-          color: 'var(--text-on-primary)'
-        }}
-        aria-label="Ir a pedidos"
-      >
-        <span className="material-icons" style={{ fontSize: 24 }}>shopping_cart</span>
-        {cartCount > 0 && (
-          <span
-            className="absolute -top-1 -right-1 text-xs px-2 py-0.5 rounded-full"
-            style={{ backgroundColor: 'var(--surface)', color: 'var(--primary)', border: '1px solid var(--primary)' }}
+      {isAuthenticated && (
+        <div
+          className="fixed z-50 flex flex-col items-end gap-3"
+          style={{ bottom: 24, right: 24 }}
+        >
+          <button
+            onClick={() => setChatOpen(true)}
+            className="rounded-full shadow-lg flex items-center justify-center"
+            style={{
+              width: 56,
+              height: 56,
+              background: 'linear-gradient(135deg, var(--surface), color-mix(in srgb, var(--primary), white 70%))',
+              color: 'var(--primary)',
+              border: '1px solid var(--border)'
+            }}
+            aria-label="Abrir asistente"
           >
-            {cartCount}
-          </span>
-        )}
-      </button>
+            <span className="material-icons" style={{ fontSize: 24 }}>smart_toy</span>
+          </button>
+          <button
+            onClick={() => navigate('/pharmacy/cart')}
+            className="rounded-full shadow-lg flex items-center justify-center relative"
+            style={{
+              width: 56,
+              height: 56,
+              background: 'linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary), black 25%))',
+              color: 'var(--text-on-primary)'
+            }}
+            aria-label="Ir al carrito"
+          >
+            <span className="material-icons" style={{ fontSize: 24 }}>shopping_cart</span>
+            {cartCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 text-xs px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: 'var(--surface)', color: 'var(--primary)', border: '1px solid var(--primary)' }}
+              >
+                {cartCount}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
       <CheckoutModal isOpen={checkoutOpen} onClose={() => setCheckoutOpen(false)} onSuccess={(orderId) => {
         toast.success('Pago confirmado');
         setCart([]);
         navigate('/pharmacy/success');
       }} />
+      <ChatbotModal isOpen={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   );
 };

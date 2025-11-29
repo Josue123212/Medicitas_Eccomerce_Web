@@ -9,6 +9,8 @@ const AdminPricesPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Record<number, Partial<AdminPrice>>>({});
+  // Mapa id -> nombre para mostrar el nombre del producto en la tabla
+  const [productMap, setProductMap] = useState<Record<number, string>>({});
 
   const load = async () => {
     setLoading(true); setError(null);
@@ -23,7 +25,23 @@ const AdminPricesPage: React.FC = () => {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  // Cargar precios y productos (para mapear id -> nombre)
+  useEffect(() => {
+    load();
+    (async () => {
+      try {
+        const productsRes = await ecommerceAdminService.listProducts();
+        const products = Array.isArray(productsRes) ? productsRes : (productsRes?.results ?? []);
+        const map: Record<number, string> = {};
+        for (const pr of products as any[]) {
+          if (pr && typeof pr.id === 'number') map[pr.id] = String(pr.name ?? `Producto #${pr.id}`);
+        }
+        setProductMap(map);
+      } catch (err) {
+        // Silencioso: si falla, se mostrará fallback con el ID
+      }
+    })();
+  }, []);
 
   const startEdit = (p: AdminPrice) => {
     setEditing(prev => ({ ...prev, [p.id]: { ...p } }));
@@ -81,7 +99,10 @@ const AdminPricesPage: React.FC = () => {
                 return (
                   <tr key={p.id}>
                     <td className="px-4 py-2">{p.id}</td>
-                    <td className="px-4 py-2">{p.product_id}</td>
+                    <td className="px-4 py-2">
+                      {/* Mostrar nombre del producto, con fallback al ID */}
+                      {productMap[p.product_id] ?? `#${p.product_id}`}
+                    </td>
                     <td className="px-4 py-2">
                       {isEditing ? (
                         <input className="w-24 border rounded px-2 py-1" value={(e.currency as any) ?? p.currency} onChange={ev => updateField(p.id, 'currency', ev.target.value)} />

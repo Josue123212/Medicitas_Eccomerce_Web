@@ -7,7 +7,7 @@ class Category(models.Model):
     name = models.CharField(max_length=120)
     slug = models.SlugField(unique=True)
     description = models.TextField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
@@ -128,3 +128,22 @@ class Favorite(models.Model):
 
     class Meta:
         unique_together = ('user', 'product')
+
+
+class OfferSlide(models.Model):
+    title = models.CharField(max_length=200)
+    subtitle = models.CharField(max_length=300, blank=True)
+    badge = models.CharField(max_length=50, blank=True, default='Oferta')
+    cta_text = models.CharField(max_length=80, blank=True, default='Ver productos en oferta')
+    cta_link = models.CharField(max_length=200, blank=True, default='/pharmacy/offers')
+    image = models.ImageField(upload_to='offers/', blank=True, null=True)
+    position = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['position', 'id']
+
+    def __str__(self):
+        return self.title

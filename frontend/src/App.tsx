@@ -67,11 +67,14 @@ import PharmacyOrderDetailPage from './pages/pharmacy/PharmacyOrderDetailPage';
 import PharmacyCartPage from './pages/pharmacy/PharmacyCartPage';
 import PaymentSuccessPage from './pages/pharmacy/PaymentSuccessPage';
 import PaymentCancelPage from './pages/pharmacy/PaymentCancelPage';
+import OffersPage from './pages/pharmacy/OffersPage';
 // Admin E-commerce Pages
 import AdminEcommerceHome from './pages/admin/ecommerce/AdminEcommerceHome';
 import AdminProductsPage from './pages/admin/ecommerce/AdminProductsPage';
 import AdminInventoryPage from './pages/admin/ecommerce/AdminInventoryPage';
 import AdminPricesPage from './pages/admin/ecommerce/AdminPricesPage';
+import AdminCategoriesPage from './pages/admin/ecommerce/AdminCategoriesPage';
+import AdminOffersPage from './pages/admin/ecommerce/AdminOffersPage';
 
 
 /**
@@ -167,6 +170,7 @@ const AppRoutes: React.FC = () => {
           {/* 🛍️ RUTAS FARMACIA - Accesibles para invitados y usuarios */}
           <Route path="/pharmacy" element={<PharmacyLandingPage />} />
           <Route path="/pharmacy/catalog" element={<PharmacyCatalogGate />} />
+          <Route path="/pharmacy/offers" element={<OffersPage />} />
           <Route path="/pharmacy/login" element={<PharmacyLoginPage />} />
           <Route path="/pharmacy/register" element={<PharmacyRegisterPage />} />
           <Route path="/pharmacy/orders" element={<PharmacyOrdersPage />} />
@@ -215,6 +219,22 @@ const AppRoutes: React.FC = () => {
             element={
               <ProtectedRoute requiredRole={['superadmin', 'admin']}>
                 <AdminPricesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/admin/ecommerce/offers" 
+            element={
+              <ProtectedRoute requiredRole={['superadmin', 'admin']}>
+                <AdminOffersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/admin/ecommerce/categories" 
+            element={
+              <ProtectedRoute requiredRole={['superadmin', 'admin']}>
+                <AdminCategoriesPage />
               </ProtectedRoute>
             }
           />

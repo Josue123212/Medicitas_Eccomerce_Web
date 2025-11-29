@@ -9,6 +9,7 @@ const AdminInventoryPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Record<number, Partial<AdminInventory>>>({});
+  const [productMap, setProductMap] = useState<Record<number, string>>({});
 
   const load = async () => {
     setLoading(true); setError(null);
@@ -23,7 +24,18 @@ const AdminInventoryPage: React.FC = () => {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    (async () => {
+      try {
+        const productsRes = await ecommerceAdminService.listProducts();
+        const prods = Array.isArray(productsRes) ? productsRes : (productsRes as any)?.results ?? [];
+        const map: Record<number, string> = {};
+        (prods as any[]).forEach(p => { if (p && typeof p.id === 'number') map[p.id] = String(p.name ?? `Producto #${p.id}`); });
+        setProductMap(map);
+      } catch {}
+    })();
+  }, []);
 
   const startEdit = (i: AdminInventory) => {
     setEditing(prev => ({ ...prev, [i.id]: { ...i } }));
@@ -39,7 +51,7 @@ const AdminInventoryPage: React.FC = () => {
     setLoading(true); setError(null);
     try {
       await ecommerceAdminService.updateInventory(id, {
-        product_id: data.product_id!,
+        product_id: (data.product_id as number | undefined) ?? (items.find(x => x.id === id)?.product_id ?? 0),
         stock: Number(data.stock ?? 0),
         reserved_stock: Number(data.reserved_stock ?? 0),
         location: String(data.location ?? 'main'),
@@ -48,7 +60,7 @@ const AdminInventoryPage: React.FC = () => {
       await load();
       setEditing(prev => { const c = { ...prev }; delete c[id]; return c; });
     } catch (err: any) {
-      setError('No se pudo guardar cambios');
+      setError(String(err?.message ?? 'No se pudo guardar cambios'));
     } finally {
       setLoading(false);
     }
@@ -80,7 +92,7 @@ const AdminInventoryPage: React.FC = () => {
                 return (
                   <tr key={i.id}>
                     <td className="px-4 py-2">{i.id}</td>
-                    <td className="px-4 py-2">{i.product_id}</td>
+                    <td className="px-4 py-2">{productMap[i.product_id] ?? `#${i.product_id}`}</td>
                     <td className="px-4 py-2">
                       {isEditing ? (
                         <input type="number" className="w-24 border rounded px-2 py-1" value={e.stock as any ?? i.stock} onChange={ev => updateField(i.id, 'stock', Number(ev.target.value))} />

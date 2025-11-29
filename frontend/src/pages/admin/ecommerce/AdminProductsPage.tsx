@@ -5,6 +5,7 @@ import ecommerceService from '../../../services/ecommerceService';
 import type { AdminProduct } from '../../../services/ecommerceAdminService';
 import type { Category } from '../../../services/ecommerceService';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
 
 const emptyForm: Partial<AdminProduct> = {
   name: '',
@@ -21,6 +22,8 @@ const AdminProductsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<AdminProduct>>(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [images, setImages] = useState<any[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const loadProducts = async () => {
     setLoading(true); setError(null);
@@ -79,6 +82,10 @@ const AdminProductsPage: React.FC = () => {
       category_id: p.category_id ?? null,
       is_active: p.is_active,
     });
+    ecommerceAdminService.listImages(p.id).then((res) => {
+      const list = Array.isArray(res) ? res : (res.results ?? []);
+      setImages(list);
+    }).catch(() => setImages([]));
   };
 
   const handleDelete = async (id: number) => {
@@ -144,6 +151,47 @@ const AdminProductsPage: React.FC = () => {
           </div>
         </form>
 
+        {editingId && (
+          <div className="bg-white border rounded p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              <h2 className="text-lg font-semibold">Imágenes</h2>
+            </div>
+            <div className="flex items-center gap-3">
+              <input type="file" accept="image/*" onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file || !editingId) return;
+                setUploading(true);
+                try {
+                  await ecommerceAdminService.uploadImage(editingId, file, images.length);
+                  const res = await ecommerceAdminService.listImages(editingId);
+                  const list = Array.isArray(res) ? res : (res.results ?? []);
+                  setImages(list);
+                } catch {
+                } finally {
+                  setUploading(false);
+                  e.target.value = '';
+                }
+              }} />
+              {uploading && <span className="text-sm text-gray-500">Subiendo...</span>}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {images.map((img: any) => (
+                <div key={img.id} className="border rounded p-2 flex flex-col items-center gap-2">
+                  <img src={img.image} alt="Producto" className="w-24 h-24 object-cover rounded" />
+                  <button className="text-xs px-2 py-1 rounded bg-red-50 text-red-700" onClick={async () => {
+                    if (!window.confirm('¿Eliminar esta imagen?')) return;
+                    try { await ecommerceAdminService.deleteImage(img.id); setImages((prev) => prev.filter((i) => i.id !== img.id)); } catch {}
+                  }}>Eliminar</button>
+                </div>
+              ))}
+              {images.length === 0 && (
+                <div className="text-sm text-gray-500">Sin imágenes</div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="bg-white border rounded">
           <table className="min-w-full divide-y">
             <thead className="bg-gray-50">
@@ -160,7 +208,13 @@ const AdminProductsPage: React.FC = () => {
                 <tr key={p.id}>
                   <td className="px-4 py-2">{p.id}</td>
                   <td className="px-4 py-2">{p.name}</td>
-                  <td className="px-4 py-2">{p.category_id ?? '—'}</td>
+                  <td className="px-4 py-2">
+                    {p.category_id ? (
+                      <span className="inline-flex items-center px-2 py-1 text-xs rounded bg-gray-100 text-gray-700">
+                        {categories.find(c => c.id === p.category_id)?.name || '—'}
+                      </span>
+                    ) : '—'}
+                  </td>
                   <td className="px-4 py-2">
                     <span className={`inline-flex items-center px-2 py-1 text-xs rounded ${p.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{p.is_active ? 'Sí' : 'No'}</span>
                   </td>

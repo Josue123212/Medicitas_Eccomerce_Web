@@ -23,7 +23,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from apps.core.views import api_documentation, api_status
+from apps.core.views import api_documentation, api_status, local_ai_chat
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/docs/', api_documentation, name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     path('api/status/', api_status, name='api-status'),
+    path('api/ai/chat/', local_ai_chat, name='local-ai-chat'),
     
     # Authentication URLs
     path('api/auth/', include('dj_rest_auth.urls')),

@@ -36,6 +36,18 @@ export interface ProductFilters {
   page?: number;
 }
 
+export interface OfferSlide {
+  id: number;
+  title: string;
+  subtitle?: string;
+  badge?: string;
+  ctaText?: string;
+  ctaLink?: string;
+  image?: string | null;
+  position: number;
+  is_active: boolean;
+}
+
 export const ecommerceService = {
   getProducts: async (filters?: ProductFilters): Promise<PaginatedResponse<Product>> => {
     const params: Record<string, string | number> = {};
@@ -98,6 +110,22 @@ export const ecommerceService = {
 
   createStripePaymentIntent: async (): Promise<{ client_secret: string; order: any }> => {
     return apiHelpers.post<{ client_secret: string; order: any }>(`/ecommerce/checkout/stripe/`, {});
+  },
+
+  getOffers: async (): Promise<OfferSlide[]> => {
+    const res = await apiHelpers.get<PaginatedResponse<any>>('/ecommerce/offers/');
+    const list: any[] = Array.isArray(res as any) ? (res as any as any[]) : ((res as any)?.results ?? []);
+    return list.map((it) => ({
+      id: it.id,
+      title: String(it.title || ''),
+      subtitle: it.subtitle ?? '',
+      badge: it.badge ?? 'Oferta',
+      ctaText: it.cta_text ?? it.ctaText ?? 'Ver productos en oferta',
+      ctaLink: it.cta_link ?? it.ctaLink ?? '/pharmacy/offers',
+      image: it.image ?? null,
+      position: Number(it.position ?? 0),
+      is_active: Boolean(it.is_active ?? true),
+    })) as OfferSlide[];
   },
 
 };

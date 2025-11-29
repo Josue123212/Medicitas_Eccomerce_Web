@@ -10,12 +10,13 @@ import stripe
 from django.views.decorators.csrf import csrf_exempt
 from decouple import config
 
-from .models import Category, Product, Price, Inventory, Cart, CartItem, Address, Order, OrderItem, Payment, Favorite
+from .models import Category, Product, Price, Inventory, Cart, CartItem, Address, Order, OrderItem, Payment, Favorite, ProductImage, OfferSlide
 from .serializers import (
-    CategorySerializer, ProductSerializer, InventorySerializer,
+    CategorySerializer, CategoryWriteSerializer, ProductSerializer, InventorySerializer,
     CartSerializer, CartItemSerializer, AddressSerializer,
     OrderSerializer, PaymentSerializer, FavoriteSerializer,
-    ProductWriteSerializer, PriceWriteSerializer, InventoryWriteSerializer
+    ProductWriteSerializer, PriceWriteSerializer, InventoryWriteSerializer,
+    ProductImageWriteSerializer, OfferSlideSerializer, OfferSlideWriteSerializer
 )
 from apps.core.permissions import IsAdminOrSuperAdmin
 
@@ -120,6 +121,27 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user).order_by('-created_at')
+
+
+class OfferSlideViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = OfferSlide.objects.filter(is_active=True).order_by('position')
+    serializer_class = OfferSlideSerializer
+    permission_classes = [AllowAny]
+
+
+class AdminOfferSlideViewSet(viewsets.ModelViewSet):
+    queryset = OfferSlide.objects.all().order_by('position')
+    serializer_class = OfferSlideWriteSerializer
+    permission_classes = [IsAdminOrSuperAdmin]
+
+    @action(detail=True, methods=['post'])
+    def activate(self, request, pk=None):
+        slide = self.get_object()
+        with transaction.atomic():
+            OfferSlide.objects.update(is_active=False)
+            slide.is_active = True
+            slide.save(update_fields=['is_active'])
+        return Response(OfferSlideWriteSerializer(slide).data)
 
 
 class CartItemViewSet(viewsets.ModelViewSet):
@@ -284,4 +306,26 @@ class AdminPriceViewSet(viewsets.ModelViewSet):
 class AdminInventoryViewSet(viewsets.ModelViewSet):
     queryset = Inventory.objects.all().order_by('-updated_at')
     serializer_class = InventoryWriteSerializer
+    permission_classes = [IsAdminOrSuperAdmin]
+
+
+class AdminProductImageViewSet(viewsets.ModelViewSet):
+    queryset = ProductImage.objects.all().order_by('position')
+    serializer_class = ProductImageWriteSerializer
+    permission_classes = [IsAdminOrSuperAdmin]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        pid = self.request.query_params.get('product_id')
+        if pid:
+            try:
+                qs = qs.filter(product_id=int(pid))
+            except (TypeError, ValueError):
+                pass
+        return qs
+
+
+class AdminCategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all().order_by('name')
+    serializer_class = CategoryWriteSerializer
     permission_classes = [IsAdminOrSuperAdmin]

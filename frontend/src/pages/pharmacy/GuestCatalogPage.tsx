@@ -58,8 +58,11 @@ const GuestCatalogPage: React.FC = () => {
   const [params, setParams] = useSearchParams();
   const selectedCategoryId = params.get('category') ? Number(params.get('category')) : null;
   const { products, isLoading, error } = useProducts(selectedCategoryId);
+  const offersQuery = useQuery({ queryKey: ['ecommerce', 'offers'], queryFn: () => ecommerceService.getOffers(), staleTime: 2 * 60 * 1000 });
+  const offers: OfferSlide[] = Array.isArray(offersQuery.data) ? (offersQuery.data as OfferSlide[]) : [];
   const backendOrigin = (import.meta.env.VITE_BACKEND_ORIGIN as string) ?? 'http://localhost:8000';
   const filtersModal = useModal(false);
+  const [imgLoaded, setImgLoaded] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     if (paused) return;
@@ -106,7 +109,7 @@ const GuestCatalogPage: React.FC = () => {
             onMouseLeave={() => setPaused(false)}
           >
             {/* Slide actual */}
-            {promoSlides.map((slide, idx) => (
+            {(offers && offers.length ? (offers as any[]) : promoSlides).map((slide: any, idx: number) => (
               <div
                 key={slide.id}
                 className={`transition-opacity duration-500 ${idx === current ? 'opacity-100' : 'opacity-0 absolute inset-0 pointer-events-none'}`}
@@ -140,17 +143,17 @@ const GuestCatalogPage: React.FC = () => {
                         </p>
                       )}
                       <div className="flex flex-wrap items-center gap-3">
-                        <Link to={slide.ctaLink || '/pharmacy/catalog'}>
+                        <Link to={(slide.ctaLink || (slide as any).cta_link || '/pharmacy/catalog')}>
                           <button
                             className="btn-white px-4 py-2 rounded-lg font-medium transition-colors"
                             style={{ color: 'var(--primary)' }}
                           >
-                            {slide.ctaText || 'Ver catálogo'}
+                            {slide.ctaText || (slide as any).cta_text || 'Ver catálogo'}
                           </button>
                         </Link>
-                        <Link to="/pharmacy">
+                        <Link to="/pharmacy/offers">
                           <button className="btn-outline-white px-4 py-2 rounded-lg font-medium transition-colors">
-                            Más información
+                            Ver productos en oferta
                           </button>
                         </Link>
                       </div>
@@ -259,7 +262,7 @@ const GuestCatalogPage: React.FC = () => {
             <>
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="bg-white rounded-xl shadow-sm p-6 animate-pulse" style={{ border: '1px solid var(--border)' }}>
-                  <div className="w-full h-32 mb-4 rounded-lg" style={{ backgroundColor: 'var(--primary)', opacity: 0.12 }} />
+                  <div className="w-full h-48 sm:h-56 mb-4 rounded-lg" style={{ backgroundColor: 'var(--primary)', opacity: 0.12 }} />
                   <div className="h-4 w-2/3 bg-gray-200 rounded mb-2" />
                   <div className="h-3 w-1/2 bg-gray-200 rounded mb-4" />
                   <div className="flex items-center justify-between">
@@ -275,27 +278,55 @@ const GuestCatalogPage: React.FC = () => {
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>No se pudo cargar el catálogo.</p>
             </div>
           )}
-          {products.map((p) => (
-            <div key={p.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition" style={{ border: '1px solid var(--border)' }}>
-              <div className="w-full h-32 mb-4 rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--primary)', opacity: 0.08 }}>
+          {products.map((p) => {
+            const displayName = (p.name && p.name.trim()) ? p.name : ((p.title && String(p.title).trim()) ? String(p.title) : `Producto #${p.id}`);
+            const basePrice = Number(p.price?.amount ?? 0);
+            const salePrice = Number(p.price?.sale_amount ?? basePrice);
+            const hasDiscount = p.price?.sale_amount != null && salePrice < basePrice && basePrice > 0;
+            const discountPct = hasDiscount ? Math.round(((basePrice - salePrice) / basePrice) * 100) : 0;
+            return (
+              <div key={p.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition" style={{ border: '1px solid var(--border)' }}>
+              <div className="group w-full h-48 sm:h-56 mb-4 rounded-lg overflow-hidden relative" style={{ backgroundColor: 'var(--surface)' }}>
+                <div className="absolute inset-0" style={{ backgroundColor: 'var(--primary)', opacity: 0.08, display: imgLoaded[p.id] ? 'none' : 'block' }} />
                 {p.images?.[0]?.image ? (
                   <img
                     src={p.images[0].image.startsWith('http') ? p.images[0].image : `${backendOrigin}${p.images[0].image}`}
-                    alt={p.name}
-                    className="w-full h-full object-cover"
+                    alt={displayName}
+                    className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                    onLoad={() => setImgLoaded((prev) => ({ ...prev, [p.id]: true }))}
                   />
                 ) : null}
+                <div className="absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-20 pointer-events-none" style={{ backgroundColor: 'black' }} />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span className="material-icons transition-opacity duration-300 opacity-0 group-hover:opacity-100" style={{ color: 'var(--text-on-primary)' }}>zoom_in</span>
+                </div>
+                {hasDiscount && (
+                  <div className="absolute pointer-events-none" style={{ top: 0, left: 0, zIndex: 2 }}>
+                    <div style={{ position: 'absolute', top: 12, left: -28, width: 120, transform: 'rotate(-45deg)' }}>
+                      <div className="text-xs font-semibold" style={{ backgroundColor: 'var(--primary)', color: 'var(--text-on-primary)', padding: '4px 0', textAlign: 'center', borderRadius: 3 }}>
+                        En oferta {discountPct ? `-${discountPct}%` : ''}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              <h3 className="text-lg font-medium mb-1" style={{ color: 'var(--text-primary)' }}>{p.name}</h3>
+              <h3 className="text-lg font-medium mb-1" style={{ color: 'var(--text-primary)' }}>{displayName}</h3>
               <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>{p.description}</p>
               <div className="flex items-center justify-between">
-                <span className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
-                  {new Intl.NumberFormat('es-ES', { style: 'currency', currency: (p.price?.currency ?? 'USD') }).format(Number(p.price?.sale_amount ?? p.price?.amount ?? 0))}
-                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {new Intl.NumberFormat('es-ES', { style: 'currency', currency: (p.price?.currency ?? 'USD') }).format(hasDiscount ? salePrice : basePrice)}
+                  </span>
+                  {hasDiscount && (
+                    <span className="text-sm line-through" style={{ color: 'var(--text-secondary)' }}>
+                      {new Intl.NumberFormat('es-ES', { style: 'currency', currency: (p.price?.currency ?? 'USD') }).format(basePrice)}
+                    </span>
+                  )}
+                </div>
                 <button className="btn-primary px-3 py-2 rounded-md text-sm">Ver detalles</button>
               </div>
             </div>
-          ))}
+          )})}
           </div>
         </div>
 
