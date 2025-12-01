@@ -35,6 +35,7 @@ class Price(models.Model):
     is_active = models.BooleanField(default=True)
     # Campo existente en la base: NOT NULL
     valid_from = models.DateTimeField(default=timezone.now)
+    valid_until = models.DateTimeField(null=True, blank=True)
 
 
 class ProductImage(models.Model):

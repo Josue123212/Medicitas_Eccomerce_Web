@@ -9,9 +9,38 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 
 class PriceSerializer(serializers.ModelSerializer):
+    sale_active = serializers.SerializerMethodField()
+    sale_ends_at = serializers.SerializerMethodField()
+
     class Meta:
         model = Price
-        fields = ['currency', 'amount', 'sale_amount']
+        fields = ['currency', 'amount', 'sale_amount', 'valid_from', 'valid_until', 'sale_ends_at', 'sale_active']
+
+    def get_sale_active(self, obj):
+        try:
+            from django.utils import timezone
+            now = timezone.now()
+            if not obj.is_active or obj.sale_amount is None:
+                return False
+            if obj.valid_from and now < obj.valid_from:
+                return False
+            if obj.valid_until and now > obj.valid_until:
+                return False
+            return True
+        except Exception:
+            return False
+
+    def get_sale_ends_at(self, obj):
+        try:
+            if obj.valid_until:
+                return obj.valid_until
+            from django.utils import timezone
+            from django.conf import settings
+            if not obj.valid_from:
+                return None
+            return obj.valid_from + timezone.timedelta(days=getattr(settings, 'OFFER_DEFAULT_DURATION_DAYS', 7))
+        except Exception:
+            return None
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -137,7 +166,7 @@ class PriceWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Price
-        fields = ['id', 'product_id', 'currency', 'amount', 'sale_amount', 'is_active', 'valid_from']
+        fields = ['id', 'product_id', 'currency', 'amount', 'sale_amount', 'is_active', 'valid_from', 'valid_until']
 
     def validate_product_id(self, value):
         if not Product.objects.filter(id=value).exists():
@@ -154,6 +183,11 @@ class PriceWriteSerializer(serializers.ModelSerializer):
         product_id = validated_data.pop('product_id', None)
         if product_id is not None:
             instance.product = Product.objects.get(id=product_id)
+        # Validación simple de ventana
+        vf = validated_data.get('valid_from', getattr(instance, 'valid_from', None))
+        vu = validated_data.get('valid_until', getattr(instance, 'valid_until', None))
+        if vf and vu and vu <= vf:
+            raise serializers.ValidationError({'valid_until': 'Debe ser posterior a valid_from'})
         return super().update(instance, validated_data)
 
 

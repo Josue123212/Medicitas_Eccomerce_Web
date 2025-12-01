@@ -233,7 +233,17 @@ class CartItemViewSet(viewsets.ModelViewSet):
         cart, _ = Cart.objects.get_or_create(user=self.request.user)
         product = serializer.validated_data.get('product')
         quantity = int(serializer.validated_data.get('quantity', 1))
-        unit_price = (getattr(product.price, 'sale_amount', None) or product.price.amount)
+        from django.utils import timezone
+        price = getattr(product, 'price', None)
+        now = timezone.now()
+        sale_active = False
+        try:
+            if price and price.is_active and price.sale_amount is not None:
+                if (not price.valid_from or now >= price.valid_from) and (not price.valid_until or now <= price.valid_until):
+                    sale_active = True
+        except Exception:
+            sale_active = False
+        unit_price = (price.sale_amount if sale_active else price.amount)
         subtotal = unit_price * quantity
         serializer.save(cart=cart, unit_price=unit_price, subtotal=subtotal)
 
@@ -499,6 +509,42 @@ class AdminPriceViewSet(viewsets.ModelViewSet):
     queryset = Price.objects.all().order_by('-valid_from')
     serializer_class = PriceWriteSerializer
     permission_classes = [IsAdminOrSuperAdmin]
+
+    def get_permissions(self):
+        if getattr(self, 'action', None) in ('agent_list', 'agent_clear_expired'):
+            return [AllowAny()]
+        return [IsAdminOrSuperAdmin()]
+
+    @action(detail=False, methods=['get'], url_path='agent-list')
+    def agent_list(self, request):
+        expected_key = getattr(settings, 'SERVICE_API_KEY', None) or config('SERVICE_API_KEY', default='')
+        received_key = request.META.get('HTTP_X_SERVICE_KEY') or request.headers.get('X-Service-Key')
+        if not (expected_key and received_key == expected_key):
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        qs = self.get_queryset()
+        return Response(PriceWriteSerializer(qs, many=True).data)
+
+    @action(detail=True, methods=['put'], url_path='agent-clear-expired')
+    def agent_clear_expired(self, request, pk=None):
+        expected_key = getattr(settings, 'SERVICE_API_KEY', None) or config('SERVICE_API_KEY', default='')
+        received_key = request.META.get('HTTP_X_SERVICE_KEY') or request.headers.get('X-Service-Key')
+        if not (expected_key and received_key == expected_key):
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        price = self.get_object()
+        from django.utils import timezone
+        now = timezone.now()
+        expired = False
+        try:
+            if price.valid_until and now > price.valid_until:
+                expired = True
+        except Exception:
+            expired = False
+        if not expired:
+            return Response({'detail': 'No expirado'}, status=status.HTTP_202_ACCEPTED)
+        with transaction.atomic():
+            price.sale_amount = None
+            price.save(update_fields=['sale_amount'])
+        return Response(PriceWriteSerializer(price).data)
 
 
 class AdminInventoryViewSet(viewsets.ModelViewSet):
