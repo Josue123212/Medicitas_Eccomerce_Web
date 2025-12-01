@@ -1,0 +1,13 @@
+server:
+  port: 8091
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+backend:
+  baseUrl: ${BACKEND_URL:http://backend:8000/api}
+service:
+  apiKey: ${SERVICE_API_KEY:admin-agent-key}
+offers:
+  cron: ${OFFERS_CRON:0 */1 * * * *}

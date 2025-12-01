@@ -18,7 +18,7 @@ services:
     build: ./frontend
     environment:
       - VITE_BACKEND_ORIGIN=http://localhost:8000
-      - VITE_GROQ_MODEL=llama-3.1-70b-versatile
+      - VITE_GROQ_MODEL=llama-3.1-8b-instant
     ports:
       - "5173:5173"
     depends_on:
@@ -33,6 +33,16 @@ services:
       - SERVICE_API_KEY=${SERVICE_API_KEY:-admin-agent-key}
     ports:
       - "8081:8081"
+    depends_on:
+      - backend
+  offers-service:
+    build: ./microservices/offers-service
+    environment:
+      - BACKEND_URL=http://backend:8000/api
+      - SERVICE_API_KEY=${SERVICE_API_KEY:-admin-agent-key}
+      - OFFERS_CRON=0 */1 * * * *
+    ports:
+      - "8091:8091"
     depends_on:
       - backend
     networks:
