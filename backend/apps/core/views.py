@@ -142,6 +142,7 @@ def local_ai_chat(request):
     payload.setdefault('temperature', 0.7)
     payload.setdefault('top_p', 1)
     payload.setdefault('n', 1)
+    payload.setdefault('max_tokens', 256)
 
     url = (base + '/chat/completions') if has_v1 else (base + '/v1/chat/completions')
     headers = {'Content-Type': 'application/json'}
@@ -171,6 +172,9 @@ def local_ai_chat(request):
         fallback = f'Error del asistente: {str(e)}'
         return Response({'choices': [{'message': {'content': fallback}}]}, status=200)
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@authentication_classes([])
 @csrf_exempt
 def local_ai_chat_simple(request):
     try:
@@ -197,18 +201,68 @@ def local_ai_chat_simple(request):
         messages = [{ 'role': 'user', 'content': ' '.join([str(x) for x in messages if isinstance(x, str)]) }]
     base = endpoint.rstrip('/')
     has_v1 = base.endswith('/v1')
-    payload = {'messages': messages, 'temperature': 0.7, 'top_p': 1, 'n': 1}
+    payload = {'messages': messages, 'temperature': 0.7, 'top_p': 1, 'n': 1, 'max_tokens': 256}
     if m:
         payload['model'] = m
     url = (base + '/chat/completions') if has_v1 else (base + '/v1/chat/completions')
     headers = {'Content-Type': 'application/json'}
     if api_key:
         headers['Authorization'] = f'Bearer {api_key}'
-    try:
-        req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers)
+    def do_call(u, body, hdrs):
+        req = urllib.request.Request(u, data=json.dumps(body).encode('utf-8'), headers=hdrs)
         with urllib.request.urlopen(req, timeout=30) as resp:
-            data = json.loads(resp.read().decode('utf-8'))
-            return Response(data)
+            return json.loads(resp.read().decode('utf-8'))
+    try:
+        data = do_call(url, payload, headers)
+        try:
+            has_assistant = any((isinstance(m, dict) and m.get('role') == 'assistant') for m in messages)
+        except Exception:
+            has_assistant = True
+        if not has_assistant:
+            try:
+                content = data.get('choices', [{}])[0].get('message', {}).get('content')
+                if isinstance(content, str):
+                    data['choices'][0]['message']['content'] = 'Yo soy tu agente de Farmacia MediCitas; ¿qué necesitas hoy? ' + content
+            except Exception:
+                pass
+        return JsonResponse(data)
+    except urllib.error.HTTPError as e:
+        detail = None
+        raw = None
+        try:
+            raw = e.read().decode('utf-8')
+            err = json.loads(raw)
+            detail = err.get('error') or err.get('message') or err.get('detail')
+        except Exception:
+            detail = str(e)
+        # Intentar descubrir y usar un modelo válido, aunque el modelo venga en el payload
+        try:
+            models_url = (base + '/models') if has_v1 else (base + '/v1/models')
+            r = urllib.request.Request(models_url, headers={'Authorization': f'Bearer {api_key}'} if api_key else {})
+            with urllib.request.urlopen(r, timeout=10) as mresp:
+                mdata = json.loads(mresp.read().decode('utf-8'))
+                if isinstance(mdata, dict) and isinstance(mdata.get('data'), list) and mdata['data']:
+                    payload['model'] = mdata['data'][0].get('id') or ''
+                    try:
+                        data = do_call(url, payload, headers)
+                        try:
+                            has_assistant = any((isinstance(m, dict) and m.get('role') == 'assistant') for m in messages)
+                        except Exception:
+                            has_assistant = True
+                        if not has_assistant:
+                            try:
+                                content = data.get('choices', [{}])[0].get('message', {}).get('content')
+                                if isinstance(content, str):
+                                    data['choices'][0]['message']['content'] = 'Yo soy tu agente de Farmacia MediCitas; ¿qué necesitas hoy? ' + content
+                            except Exception:
+                                pass
+                        return JsonResponse(data)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+        msg = detail or (raw or 'Error del asistente: Bad Request')
+        return JsonResponse({'choices': [{'message': {'content': msg}}]}, status=200)
     except Exception as e:
         fallback = f'Error del asistente: {str(e)}'
-        return Response({'choices': [{'message': {'content': fallback}}]}, status=200)
+        return JsonResponse({'choices': [{'message': {'content': fallback}}]}, status=200)

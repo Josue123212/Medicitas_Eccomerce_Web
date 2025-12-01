@@ -10,29 +10,60 @@ interface Props {
 
 const ChatbotModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [messages, setMessages] = React.useState<ChatMessage[]>([
-    { role: 'system', content: 'Eres un asistente útil para MediCitas y su farmacia.' },
+    { role: 'system' as const, content: 'Rol: Agente de Farmacia MediCitas (cliente). Idioma: Español. Tono: cercano, claro. Objetivo: recomendar productos de salud de venta libre, orientar compra y próximos pasos. Reglas: 1) No diagnosticas ni indicas prescripciones; si es urgente o requiere receta, sugieres consultar profesional. 2) Siempre ofreces alternativas seguras (analgésicos, antigripales, vitaminas) con advertencias básicas. 3) Eres proactivo: propones “Añadir al carrito”, “Ver detalle”, “Consultar disponibilidad”. 4) Primera respuesta de la sesión y ante saludos o “quién eres”: DEBES comenzar exactamente con: "Yo soy tu agente de Farmacia MediCitas; ¿qué necesitas hoy?" y luego continúas ofreciendo ayuda y opciones.' },
   ]);
   const [input, setInput] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const inFlightRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setMessages([
+        { role: 'system' as const, content: 'Rol: Agente de Farmacia MediCitas (cliente). Idioma: Español. Tono: cercano, claro. Objetivo: recomendar productos de salud de venta libre, orientar compra y próximos pasos. Reglas: 1) No diagnosticas ni indicas prescripciones; si es urgente o requiere receta, sugieres consultar profesional. 2) Siempre ofreces alternativas seguras (analgésicos, antigripales, vitaminas) con advertencias básicas. 3) Eres proactivo: propones “Añadir al carrito”, “Ver detalle”, “Consultar disponibilidad”. 4) Primera respuesta de la sesión y ante saludos o “quién eres”: DEBES comenzar exactamente con: "Yo soy tu agente de Farmacia MediCitas; ¿qué necesitas hoy?" y luego continúas ofreciendo ayuda y opciones.' },
+      ]);
+      setError(null);
+      setInput('');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const send = async () => {
+    if (inFlightRef.current) return;
     if (!input.trim()) return;
-    const next = [...messages, { role: 'user', content: input.trim() }];
+    const next: ChatMessage[] = [...messages, { role: 'user' as const, content: input.trim() }];
     setMessages(next);
     setInput('');
     setLoading(true);
+    inFlightRef.current = true;
     setError(null);
     try {
       const res = await aiService.chat(next);
       const content = res?.choices?.[0]?.message?.content || res?.message || JSON.stringify(res);
-      setMessages([...next, { role: 'assistant', content }]);
+      const isFirstAssistant = next.findIndex(m => m.role === 'assistant') === -1;
+      const prefix = 'Yo soy tu agente de Farmacia MediCitas; ¿qué necesitas hoy? ';
+      let finalContent = isFirstAssistant ? (prefix + content) : content;
+      const lastUser = next[next.length - 1]?.content?.toLowerCase() || '';
+      const sugg: string[] = [];
+      if (lastUser.includes('dolor de cabeza')) {
+        sugg.push('Sugerencia MediCitas: analgésicos de venta libre como paracetamol o ibuprofeno (leer indicaciones y evitar duplicar principios activos). Puedes buscar en la categoría Analgésicos y añadir al carrito.');
+      }
+      if (lastUser.includes('gripe') || lastUser.includes('resfriado')) {
+        sugg.push('Sugerencia MediCitas: antigripales combinados, vitamina C y descongestionantes nasales. Revisa la categoría Antigripales y considera reposo e hidratación.');
+      }
+      if (lastUser.includes('tos')) {
+        sugg.push('Sugerencia MediCitas: jarabes antitusivos o expectorantes según tipo de tos. Consulta la categoría Jarabes y verifica advertencias.');
+      }
+      if (sugg.length) {
+        finalContent = `${finalContent}\n\n${sugg.join('\n')}`;
+      }
+      setMessages([...next, { role: 'assistant' as const, content: finalContent }]);
     } catch (e: any) {
       setError('No se pudo obtener respuesta del asistente');
     } finally {
       setLoading(false);
+      inFlightRef.current = false;
     }
   };
 
@@ -63,7 +94,7 @@ const ChatbotModal: React.FC<Props> = ({ isOpen, onClose }) => {
             className="flex-1 px-3 py-2 rounded-lg"
             style={{ border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
             placeholder="Escribe tu mensaje..."
-            onKeyDown={(e) => { if (e.key === 'Enter') send(); }}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !loading && !inFlightRef.current) send(); }}
           />
           <button className="btn-primary px-4 py-2 rounded-lg" onClick={send} disabled={loading}>
             {loading ? 'Enviando...' : 'Enviar'}

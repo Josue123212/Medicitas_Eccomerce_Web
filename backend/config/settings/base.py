@@ -116,6 +116,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom User Model
 AUTH_USER_MODEL = 'users.User'
 
+# Ofertas
+from datetime import timedelta
+OFFER_DEFAULT_DURATION_DAYS = config('OFFER_DEFAULT_DURATION_DAYS', default=7, cast=int)
+
 # Django REST Framework configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -340,13 +344,16 @@ SECURITY_HEADERS = {
 # Rate limiting (per rol por minuto)
 RATE_LIMIT_SETTINGS = {
     'ENABLED': True,
-    'EXEMPT_PATHS': ['/api/auth/', '/api/users/auth/', '/admin/'],
+    'EXEMPT_PATHS': [
+        '/api/auth/', '/api/users/auth/', '/admin/',
+        '/api/ecommerce/products/', '/api/ecommerce/categories/', '/api/ecommerce/offers/'
+    ],
     'RATE_LIMITS': {
         'admin': 1000,
-        'doctor': 200,
-        'secretary': 100,
-        'patient': 50,
-        'anonymous': 100,
+        'doctor': 300,
+        'secretary': 150,
+        'patient': 200,
+        'anonymous': 150,
     },
 }
 
