@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { ShoppingCart, Package, Database, BadgeDollarSign, Tags, BadgePercent } from 'lucide-react';
+import { ShoppingCart, Package, Database, BadgeDollarSign, Tags, BadgePercent, Bot, ShieldCheck } from 'lucide-react';
 
 const AdminEcommerceHome: React.FC = () => {
   return (
@@ -14,7 +14,7 @@ const AdminEcommerceHome: React.FC = () => {
 
         <p className="text-gray-600">Centro de administración de catálogo, inventario y precios.</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
           <Link to="/admin/ecommerce/categories" className="block p-6 bg-white rounded-lg shadow hover:shadow-md border">
             <div className="flex items-center mb-3">
               <Tags className="h-6 w-6 text-purple-600" />
@@ -52,6 +52,22 @@ const AdminEcommerceHome: React.FC = () => {
               <h2 className="ml-2 text-lg font-semibold">Ofertas</h2>
             </div>
             <p className="text-gray-600">Gestionar carrusel: título, eslogan, imagen y CTA.</p>
+          </Link>
+
+          <Link to="/admin/ecommerce/agent" className="block p-6 bg-white rounded-lg shadow hover:shadow-md border">
+            <div className="flex items-center mb-3">
+              <Bot className="h-6 w-6 text-indigo-600" />
+              <h2 className="ml-2 text-lg font-semibold">Agente</h2>
+            </div>
+            <p className="text-gray-600">Chat de comandos con el agente administrativo.</p>
+          </Link>
+
+          <Link to="/admin/ecommerce/audits" className="block p-6 bg-white rounded-lg shadow hover:shadow-md border">
+            <div className="flex items-center mb-3">
+              <ShieldCheck className="h-6 w-6 text-purple-600" />
+              <h2 className="ml-2 text-lg font-semibold">Auditorías</h2>
+            </div>
+            <p className="text-gray-600">Registrar bloqueos/liberaciones y revisar historial.</p>
           </Link>
         </div>
       </div>

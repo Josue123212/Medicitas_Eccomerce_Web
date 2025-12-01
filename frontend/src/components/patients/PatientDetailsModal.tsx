@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { patientService, type Patient } from '../../services/patientService';
 import { Badge } from '../ui/Badge';
-import { Button } from '../ui/button';
+import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui';
 import LoadingSpinner from '../ui/LoadingSpinner';
 

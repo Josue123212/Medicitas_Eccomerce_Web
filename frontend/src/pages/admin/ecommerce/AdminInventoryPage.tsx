@@ -92,7 +92,12 @@ const AdminInventoryPage: React.FC = () => {
                 return (
                   <tr key={i.id}>
                     <td className="px-4 py-2">{i.id}</td>
-                    <td className="px-4 py-2">{productMap[i.product_id] ?? `#${i.product_id}`}</td>
+                    <td className="px-4 py-2">
+                      {productMap[i.product_id] ?? `#${i.product_id}`}
+                      {(!isEditing && i.min_stock > 0 && (i.stock - i.reserved_stock) <= i.min_stock) && (
+                        <span className="ml-2 inline-block px-2 py-0.5 text-xs rounded bg-red-50 text-red-700 border border-red-200">Bajo stock</span>
+                      )}
+                    </td>
                     <td className="px-4 py-2">
                       {isEditing ? (
                         <input type="number" className="w-24 border rounded px-2 py-1" value={e.stock as any ?? i.stock} onChange={ev => updateField(i.id, 'stock', Number(ev.target.value))} />

@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import JsonResponse
 from drf_spectacular.openapi import AutoSchema
 from drf_spectacular.utils import extend_schema
@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 import json
 import urllib.request
 import urllib.error
@@ -89,21 +90,44 @@ def api_status(request):
     })
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def auth_csrf(request):
+    from django.middleware.csrf import get_token
+    token = get_token(request)
+    resp = Response({'csrf_token': token})
+    resp.set_cookie('csrftoken', token)
+    return resp
+
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
+@authentication_classes([])
+@csrf_exempt
 def local_ai_chat(request):
-    endpoint = getattr(settings, 'LOCAL_AI_ENDPOINT', 'http://localhost:11964').rstrip('/')
+    endpoint = (getattr(settings, 'LLM_BASE_URL', None) or getattr(settings, 'LOCAL_AI_ENDPOINT', 'http://localhost:11964')).rstrip('/')
+    api_key = getattr(settings, 'LLM_API_KEY', '')
     model = request.data.get('model') or getattr(settings, 'LOCAL_AI_DEFAULT_MODEL', '')
     messages = request.data.get('messages') or []
+    if not messages:
+        text = request.data.get('text') or request.data.get('message') or ''
+        if isinstance(text, str) and text.strip():
+            messages = [{ 'role': 'user', 'content': text.strip() }]
+    # Normalizar mensajes si vienen como lista de strings
+    if isinstance(messages, list) and messages and isinstance(messages[0], str):
+        messages = [{ 'role': 'user', 'content': ' '.join([str(m) for m in messages if isinstance(m, str)]) }]
 
     if not isinstance(messages, list) or not messages:
-        return Response({'error': 'messages vacío o malformado'}, status=400)
+        messages = [{'role': 'user', 'content': 'Hola'}]
 
+    # Normalizar base para evitar doble /v1
+    base = endpoint.rstrip('/')
+    has_v1 = base.endswith('/v1')
     # Si no hay modelo, intentar descubrir el primero disponible
     if not model:
         try:
-            models_url = endpoint + '/v1/models'
-            with urllib.request.urlopen(models_url, timeout=10) as mresp:
+            models_url = (base + '/models') if has_v1 else (base + '/v1/models')
+            req = urllib.request.Request(models_url, headers={'Authorization': f'Bearer {api_key}'} if api_key else {})
+            with urllib.request.urlopen(req, timeout=10) as mresp:
                 mdata = json.loads(mresp.read().decode('utf-8'))
                 # OpenAI-like: {data: [{id: '...'}]}
                 if isinstance(mdata, dict) and isinstance(mdata.get('data'), list) and mdata['data']:
@@ -114,9 +138,16 @@ def local_ai_chat(request):
     payload = {'messages': messages}
     if model:
         payload['model'] = model
+    # Parámetros por defecto seguros
+    payload.setdefault('temperature', 0.7)
+    payload.setdefault('top_p', 1)
+    payload.setdefault('n', 1)
 
-    url = endpoint + '/v1/chat/completions'
-    req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers={'Content-Type': 'application/json'})
+    url = (base + '/chat/completions') if has_v1 else (base + '/v1/chat/completions')
+    headers = {'Content-Type': 'application/json'}
+    if api_key:
+        headers['Authorization'] = f'Bearer {api_key}'
+    req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read().decode('utf-8'))
@@ -127,6 +158,57 @@ def local_ai_chat(request):
             err = json.loads(err_body)
         except Exception:
             err = {'error': str(e)}
-        return Response(err, status=e.code)
+        text = None
+        if isinstance(err, dict):
+            text = err.get('error') or err.get('message') or err.get('detail')
+            if isinstance(text, dict):
+                text = text.get('message') or str(text)
+        else:
+            text = str(err)
+        fallback = text or 'El asistente no pudo responder en este momento.'
+        return Response({'choices': [{'message': {'content': fallback}}]}, status=200)
     except Exception as e:
-        return Response({'error': str(e)}, status=500)
+        fallback = f'Error del asistente: {str(e)}'
+        return Response({'choices': [{'message': {'content': fallback}}]}, status=200)
+
+@csrf_exempt
+def local_ai_chat_simple(request):
+    try:
+        print('AI_CHAT_SIMPLE: method=', request.method, 'ct=', request.META.get('CONTENT_TYPE'), 'len=', len(request.body or b''))
+    except Exception:
+        pass
+    endpoint = (getattr(settings, 'LLM_BASE_URL', None) or getattr(settings, 'LOCAL_AI_ENDPOINT', 'http://localhost:11964')).rstrip('/')
+    api_key = getattr(settings, 'LLM_API_KEY', '')
+    model = getattr(settings, 'LOCAL_AI_DEFAULT_MODEL', '')
+    try:
+        raw = request.body
+        data = json.loads(raw.decode('utf-8')) if raw else {}
+    except Exception:
+        data = {}
+    m = data.get('model') or model
+    messages = data.get('messages') or []
+    if not messages:
+        text = data.get('text') or data.get('message') or ''
+        if isinstance(text, str) and text.strip():
+            messages = [{ 'role': 'user', 'content': text.strip() }]
+        else:
+            messages = [{ 'role': 'user', 'content': 'Hola' }]
+    if isinstance(messages, list) and messages and isinstance(messages[0], str):
+        messages = [{ 'role': 'user', 'content': ' '.join([str(x) for x in messages if isinstance(x, str)]) }]
+    base = endpoint.rstrip('/')
+    has_v1 = base.endswith('/v1')
+    payload = {'messages': messages, 'temperature': 0.7, 'top_p': 1, 'n': 1}
+    if m:
+        payload['model'] = m
+    url = (base + '/chat/completions') if has_v1 else (base + '/v1/chat/completions')
+    headers = {'Content-Type': 'application/json'}
+    if api_key:
+        headers['Authorization'] = f'Bearer {api_key}'
+    try:
+        req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers)
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            return Response(data)
+    except Exception as e:
+        fallback = f'Error del asistente: {str(e)}'
+        return Response({'choices': [{'message': {'content': fallback}}]}, status=200)

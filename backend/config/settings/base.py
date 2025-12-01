@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from decouple import config
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -143,6 +144,11 @@ CORS_ALLOWED_ORIGINS = config(
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = False  # Seguridad: solo permitir orígenes específicos
+
+# Permitir encabezado personalizado para integración de servicios
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'x-service-key'
+]
 
 # Simple JWT configuration
 from datetime import timedelta
@@ -371,3 +377,5 @@ STRIPE_CURRENCY = config('STRIPE_CURRENCY', default='USD')
 # Local AI Service (Msty Studio)
 LOCAL_AI_ENDPOINT = config('LOCAL_AI_ENDPOINT', default='http://localhost:11964')
 LOCAL_AI_DEFAULT_MODEL = config('LOCAL_AI_DEFAULT_MODEL', default='')
+LLM_BASE_URL = config('LLM_BASE_URL', default=LOCAL_AI_ENDPOINT)
+LLM_API_KEY = config('LLM_API_KEY', default='')

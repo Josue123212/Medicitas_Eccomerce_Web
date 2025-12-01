@@ -61,6 +61,10 @@ export const ecommerceService = {
     return apiHelpers.get<Product>(`/ecommerce/products/${id}/`);
   },
 
+  getInventory: async (productId: number): Promise<{ stock: number; reserved_stock: number; min_stock: number; location: string }> => {
+    return apiHelpers.get<{ stock: number; reserved_stock: number; min_stock: number; location: string }>(`/ecommerce/inventory/${productId}/`);
+  },
+
   getCategories: async (): Promise<Category[]> => {
     const res = await apiHelpers.get<PaginatedResponse<Category>>('/ecommerce/categories/');
     return Array.isArray(res as any) ? (res as any as Category[]) : (res?.results ?? []);
@@ -110,6 +114,10 @@ export const ecommerceService = {
 
   createStripePaymentIntent: async (): Promise<{ client_secret: string; order: any }> => {
     return apiHelpers.post<{ client_secret: string; order: any }>(`/ecommerce/checkout/stripe/`, {});
+  },
+
+  confirmStripePayment: async (order_id: number, payment_intent_id: string): Promise<{ order: any; payment: any }> => {
+    return apiHelpers.post<{ order: any; payment: any }>(`/ecommerce/stripe/confirm/`, { order_id, payment_intent_id });
   },
 
   getOffers: async (): Promise<OfferSlide[]> => {

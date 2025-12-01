@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ecommerceService, type Product } from '../../services/ecommerceService';
+import { useAuth } from '../../contexts/AuthContext';
 
 const useProducts = () => {
   const query = useQuery({
@@ -20,6 +21,22 @@ const OffersPage: React.FC = () => {
   const { products, isLoading, error } = useProducts();
   const [imgLoaded, setImgLoaded] = useState<Record<number, boolean>>({});
   const backendOrigin = (import.meta.env.VITE_BACKEND_ORIGIN as string) ?? 'http://localhost:8000';
+  const { isAuthenticated } = useAuth();
+  const [cart, setCart] = useState<{ id: number; qty: number }[]>([]);
+  const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.qty, 0), [cart]);
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      ecommerceService.getCart()
+        .then((c: any) => {
+          const items = Array.isArray(c?.items) ? c.items : [];
+          setCart(items.map((it: any) => ({ id: Number(it.product), qty: Number(it.quantity) })));
+        })
+        .catch(() => {});
+    } else {
+      setCart([]);
+    }
+  }, [isAuthenticated]);
 
   return (
     <div className="min-h-screen" style={{ fontFamily: 'Inter, sans-serif', backgroundColor: 'var(--background)' }}>
@@ -141,6 +158,34 @@ const OffersPage: React.FC = () => {
           </div>
         )}
       </main>
+      {isAuthenticated && (
+        <div
+          className="fixed z-50 flex flex-col items-end gap-3"
+          style={{ bottom: 24, right: 24 }}
+        >
+          <button
+            onClick={() => window.location.assign('/pharmacy/cart')}
+            className="rounded-full shadow-lg flex items-center justify-center relative"
+            style={{
+              width: 56,
+              height: 56,
+              background: 'linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary), black 25%))',
+              color: 'var(--text-on-primary)'
+            }}
+            aria-label="Ir al carrito"
+          >
+            <span className="material-icons" style={{ fontSize: 24 }}>shopping_cart</span>
+            {cartCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 text-xs px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: 'var(--surface)', color: 'var(--primary)', border: '1px solid var(--primary)' }}
+              >
+                {cartCount}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

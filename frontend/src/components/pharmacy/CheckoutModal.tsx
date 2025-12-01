@@ -32,10 +32,27 @@ const CheckoutForm: React.FC<{ onSuccess: (orderId: number) => void; onClose: ()
         setLoading(false)
         return
       }
+      try {
+        const piId = result?.paymentIntent?.id || ''
+        if (order?.id && piId) {
+          await ecommerceService.confirmStripePayment(order.id, piId)
+        }
+      } catch (err) {
+        // El webhook puede confirmar igualmente; no bloquear la UI
+      }
       onSuccess(order?.id)
       onClose()
     } catch (err: any) {
-      setError(err?.message || 'Payment error')
+      const status = err?.response?.status
+      const detail = err?.response?.data?.detail
+      if (status === 400 && detail) {
+        setError(String(detail))
+      } else if (status === 502 && detail) {
+        const more = err?.response?.data?.error ? `: ${String(err.response.data.error)}` : ''
+        setError(`Error al crear PaymentIntent${more}`)
+      } else {
+        setError(err?.message || 'Payment error')
+      }
     } finally {
       setLoading(false)
     }

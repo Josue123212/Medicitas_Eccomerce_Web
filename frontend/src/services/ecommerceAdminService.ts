@@ -140,6 +140,14 @@ export const ecommerceAdminService = {
   activateOffer: async (id: number): Promise<any> => {
     return apiHelpers.post<any>(`/ecommerce/admin/offers/${id}/activate/`, {});
   },
+
+  agentUpdateInventory: async (data: { product_id: number; delta?: number; stock?: number; min?: number; location?: string }): Promise<AdminInventory> => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const key = (import.meta.env.VITE_SERVICE_API_KEY as string) ?? 'admin-agent-key';
+    if (key) headers['X-Service-Key'] = key;
+    const res = await api.post(`/ecommerce/admin/inventory/agent-update/`, data, { headers });
+    return res.data as AdminInventory;
+  },
 };
 
 export default ecommerceAdminService;

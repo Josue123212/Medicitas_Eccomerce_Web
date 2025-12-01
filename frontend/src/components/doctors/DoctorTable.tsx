@@ -3,7 +3,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '../ui/Badge';
-import { Button } from '../ui/button';
+import { Button } from '../ui/Button';
 import { 
   EyeIcon,
   CheckCircleIcon,

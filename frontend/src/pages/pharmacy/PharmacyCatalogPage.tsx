@@ -84,6 +84,7 @@ const PharmacyCatalogPage: React.FC = () => {
   const { offers } = useOffers();
   const filtersModal = useModal(false);
   const backendOrigin = (import.meta.env.VITE_BACKEND_ORIGIN as string) ?? 'http://localhost:8000';
+  const [availableMap, setAvailableMap] = React.useState<Record<number, number>>({});
 
   // Estado local para carrito y favoritos (demostración)
   const [cart, setCart] = useState<{ id: number; qty: number }[]>([]);
@@ -115,8 +116,35 @@ const PharmacyCatalogPage: React.FC = () => {
         .then((list) => setOrders(list as any))
         .catch(() => setOrdersError('No se pudo cargar tu historial'))
         .finally(() => setOrdersLoading(false));
+      // Rehidratar contador del carrito desde el backend al recargar
+      ecommerceService.getCart()
+        .then((c: any) => {
+          const items = Array.isArray(c?.items) ? c.items : [];
+          setCart(items.map((it: any) => ({ id: Number(it.product), qty: Number(it.quantity) })));
+        })
+        .catch(() => {});
     }
   }, [isAuthenticated]);
+
+  React.useEffect(() => {
+    const run = async () => {
+      try {
+        const entries = await Promise.all(products.map(async (p) => {
+          try {
+            const inv = await ecommerceService.getInventory(p.id);
+            const available = Math.max(0, Number(inv.stock) - Number(inv.reserved_stock));
+            return [p.id, available] as const;
+          } catch {
+            return [p.id, undefined] as const;
+          }
+        }));
+        const next: Record<number, number> = {};
+        entries.forEach(([id, avail]) => { if (typeof avail === 'number') next[id] = avail; });
+        setAvailableMap(next);
+      } catch {}
+    };
+    if (products.length) run();
+  }, [products]);
 
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.qty, 0), [cart]);
 
@@ -138,13 +166,25 @@ const PharmacyCatalogPage: React.FC = () => {
     ));
   };
 
-  const addToCart = (productId: number) => {
+  const addToCart = async (productId: number) => {
     debugAuth('addToCart');
     if (!isAuthenticated) {
       requireAuth('Agregar al carrito');
       return;
     }
-    ecommerceService.addCartItem(productId, 1).catch(() => {});
+    try {
+      const inv = await ecommerceService.getInventory(productId);
+      const available = Math.max(0, Number(inv.stock) - Number(inv.reserved_stock));
+      if (available <= 0) {
+        toast.error('Producto agotado');
+        return;
+      }
+      await ecommerceService.addCartItem(productId, 1);
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || 'No se pudo agregar al carrito';
+      toast.error(String(msg));
+      return;
+    }
     setCart((prev) => {
       const existing = prev.find((p) => p.id === productId);
       if (existing) {
@@ -177,7 +217,7 @@ const PharmacyCatalogPage: React.FC = () => {
     toast.success('Actualizado en favoritos');
   };
 
-  const buyNow = (productId: number) => {
+  const buyNow = async (productId: number) => {
     if (!isAuthenticated) {
       requireAuth('Comprar ahora');
       return;
@@ -187,7 +227,20 @@ const PharmacyCatalogPage: React.FC = () => {
       toast.error('Producto no encontrado');
       return;
     }
-    toast.success(`Compra simulada de "${product.name}" iniciada`);
+    try {
+      await ecommerceService.clearCart();
+    } catch {}
+    try {
+      const inv = await ecommerceService.getInventory(productId);
+      const available = Math.max(0, Number(inv.stock) - Number(inv.reserved_stock));
+      if (available <= 0) {
+        toast.error('Producto agotado');
+        return;
+      }
+      await ecommerceService.addCartItem(productId, 1);
+    } catch {}
+    setCart([{ id: productId, qty: 1 }]);
+    setCheckoutOpen(true);
   };
 
   const handleLogout = async () => {
@@ -472,22 +525,26 @@ const PharmacyCatalogPage: React.FC = () => {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
-                      className="btn-outline px-3 py-2 rounded-md text-sm"
-                      onClick={() => (isAuthenticated ? addToCart(p.id) : requireAuth('Agregar al carrito'))}
-                      aria-disabled={!isAuthenticated}
-                      style={{ opacity: !isAuthenticated ? 0.6 : 1, cursor: !isAuthenticated ? 'not-allowed' : 'pointer' }}
-                    >
-                      Agregar
-                    </button>
-                    <button
-                      className="btn-primary px-3 py-2 rounded-md text-sm"
-                      onClick={() => (isAuthenticated ? buyNow(p.id) : requireAuth('Comprar ahora'))}
-                      aria-disabled={!isAuthenticated}
-                      style={{ opacity: !isAuthenticated ? 0.6 : 1, cursor: !isAuthenticated ? 'not-allowed' : 'pointer' }}
-                    >
-                      Comprar ahora
-                    </button>
+                    {(() => { const avail = availableMap[p.id]; const agotado = typeof avail === 'number' && avail <= 0; return (
+                      <button
+                        className="btn-outline px-3 py-2 rounded-md text-sm"
+                        onClick={() => (isAuthenticated ? addToCart(p.id) : requireAuth('Agregar al carrito'))}
+                        aria-disabled={!isAuthenticated || agotado}
+                        style={{ opacity: (!isAuthenticated || agotado) ? 0.6 : 1, cursor: (!isAuthenticated || agotado) ? 'not-allowed' : 'pointer' }}
+                      >
+                        {agotado ? 'Agotado' : 'Agregar'}
+                      </button>
+                    )})()}
+                    {(() => { const avail = availableMap[p.id]; const agotado = typeof avail === 'number' && avail <= 0; return (
+                      <button
+                        className="btn-primary px-3 py-2 rounded-md text-sm"
+                        onClick={() => (isAuthenticated ? buyNow(p.id) : requireAuth('Comprar ahora'))}
+                        aria-disabled={!isAuthenticated || agotado}
+                        style={{ opacity: (!isAuthenticated || agotado) ? 0.6 : 1, cursor: (!isAuthenticated || agotado) ? 'not-allowed' : 'pointer' }}
+                      >
+                        Comprar ahora
+                      </button>
+                    )})()}
                   </div>
                 </div>
                 {p.price?.sale_amount != null && Number(p.price.sale_amount) < Number(p.price.amount ?? 0) && (

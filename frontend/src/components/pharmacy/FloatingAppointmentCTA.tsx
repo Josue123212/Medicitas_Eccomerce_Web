@@ -21,8 +21,7 @@ const FloatingAppointmentCTA: React.FC = () => {
   const [showInfo, setShowInfo] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Mostrar solo si autenticado y rol cliente
-  const canShow = isAuthenticated && user?.role === 'client' && visible;
+  const canShow = isAuthenticated && visible;
 
   useEffect(() => {
     const stored = localStorage.getItem('hideAppointmentCTA');
@@ -107,7 +106,13 @@ const FloatingAppointmentCTA: React.FC = () => {
           <div className="text-sm font-semibold">Ya eres parte de la familia MediCitas</div>
           <div className="text-xs opacity-90">Reserva tu próxima cita 
             <button
-              onClick={(e) => { e.stopPropagation(); navigate('/client/appointments', { state: { openModal: true } }); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                const role = user?.role;
+                const target = role === 'doctor' ? '/doctor/appointments' : role === 'secretary' ? '/secretary/appointments' : '/client/appointments';
+                const state = role === 'client' ? { openModal: true } : undefined;
+                navigate(target, { state });
+              }}
               className="ml-2 px-2 py-1 rounded text-xs"
               style={{ border: '1px solid var(--border)', color: 'var(--primary)', backgroundColor: 'var(--surface)' }}
             >

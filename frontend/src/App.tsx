@@ -68,6 +68,7 @@ import PharmacyCartPage from './pages/pharmacy/PharmacyCartPage';
 import PaymentSuccessPage from './pages/pharmacy/PaymentSuccessPage';
 import PaymentCancelPage from './pages/pharmacy/PaymentCancelPage';
 import OffersPage from './pages/pharmacy/OffersPage';
+import PharmacyProductDetailPage from './pages/pharmacy/PharmacyProductDetailPage';
 // Admin E-commerce Pages
 import AdminEcommerceHome from './pages/admin/ecommerce/AdminEcommerceHome';
 import AdminProductsPage from './pages/admin/ecommerce/AdminProductsPage';
@@ -75,6 +76,8 @@ import AdminInventoryPage from './pages/admin/ecommerce/AdminInventoryPage';
 import AdminPricesPage from './pages/admin/ecommerce/AdminPricesPage';
 import AdminCategoriesPage from './pages/admin/ecommerce/AdminCategoriesPage';
 import AdminOffersPage from './pages/admin/ecommerce/AdminOffersPage';
+import AdminAgentPage from './pages/admin/ecommerce/AdminAgentPage';
+import AdminAuditsPage from './pages/admin/ecommerce/AdminAuditsPage';
 
 
 /**
@@ -171,6 +174,7 @@ const AppRoutes: React.FC = () => {
           <Route path="/pharmacy" element={<PharmacyLandingPage />} />
           <Route path="/pharmacy/catalog" element={<PharmacyCatalogGate />} />
           <Route path="/pharmacy/offers" element={<OffersPage />} />
+          <Route path="/pharmacy/product/:id" element={<PharmacyProductDetailPage />} />
           <Route path="/pharmacy/login" element={<PharmacyLoginPage />} />
           <Route path="/pharmacy/register" element={<PharmacyRegisterPage />} />
           <Route path="/pharmacy/orders" element={<PharmacyOrdersPage />} />
@@ -227,6 +231,22 @@ const AppRoutes: React.FC = () => {
             element={
               <ProtectedRoute requiredRole={['superadmin', 'admin']}>
                 <AdminOffersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/admin/ecommerce/agent" 
+            element={
+              <ProtectedRoute requiredRole={['superadmin', 'admin']}>
+                <AdminAgentPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/admin/ecommerce/audits" 
+            element={
+              <ProtectedRoute requiredRole={['superadmin', 'admin']}>
+                <AdminAuditsPage />
               </ProtectedRoute>
             }
           />
