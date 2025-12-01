@@ -28,9 +28,12 @@ import ChatbotModal from '../../components/pharmacy/ChatbotModal';
 // Datos reales desde backend
 const useProducts = (categoryId: number | null) => {
   const query = useQuery({
-    queryKey: ['ecommerce', 'products', categoryId ?? 'all'],
-    queryFn: () => ecommerceService.getProducts(categoryId ? { category: categoryId } : undefined),
-    staleTime: 2 * 60 * 1000,
+    queryKey: ['ecommerce', 'products', selectedCategoryId ?? 'all'],
+    queryFn: () => ecommerceService.getProducts(selectedCategoryId ? { category: selectedCategoryId } : undefined),
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    retry: 1,
   });
   const products: Product[] = Array.isArray(query.data)
     ? (query.data as unknown as Product[])
@@ -69,7 +72,10 @@ const useOffers = () => {
   const q = useQuery({
     queryKey: ['ecommerce', 'offers'],
     queryFn: () => ecommerceService.getOffers(),
-    staleTime: 2 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
   const offers: OfferSlide[] = Array.isArray(q.data) ? (q.data as OfferSlide[]) : [];
   return { ...q, offers };
@@ -96,6 +102,7 @@ const PharmacyCatalogPage: React.FC = () => {
   const [ordersError, setOrdersError] = React.useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [imgLoaded, setImgLoaded] = useState<Record<number, boolean>>({});
+  const initRef = React.useRef(false);
 
   const debugAuth = (label?: string) => {
     try {
@@ -106,6 +113,8 @@ const PharmacyCatalogPage: React.FC = () => {
 
   React.useEffect(() => {
     debugAuth('useEffect:init');
+    if (initRef.current) return;
+    initRef.current = true;
     if (isAuthenticated) {
       ecommerceService.getFavorites().then((list) => {
         setFavoritesData(list.map((f: any) => ({ id: f.id, product: Number(f.product) })));
@@ -455,10 +464,10 @@ const PharmacyCatalogPage: React.FC = () => {
           )}
           {products.map((p) => {
             const isFav = favorites.includes(p.id);
-            const displayName = (p.name && p.name.trim()) ? p.name : ((p.title && String(p.title).trim()) ? String(p.title) : `Producto #${p.id}`);
+            const displayName = (p.name && p.name.trim()) ? p.name : `Producto #${p.id}`;
             const basePrice = Number(p.price?.amount ?? 0);
             const salePrice = Number(p.price?.sale_amount ?? basePrice);
-            const hasDiscount = p.price?.sale_amount != null && salePrice < basePrice && basePrice > 0;
+            const hasDiscount = p.price?.sale_amount != null && (p.price?.sale_active === true) && salePrice < basePrice && basePrice > 0;
             const discountPct = hasDiscount ? Math.round(((basePrice - salePrice) / basePrice) * 100) : 0;
             return (
               <div key={p.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition" style={{ border: '1px solid var(--border)' }}>
@@ -547,7 +556,7 @@ const PharmacyCatalogPage: React.FC = () => {
                     )})()}
                   </div>
                 </div>
-                {p.price?.sale_amount != null && Number(p.price.sale_amount) < Number(p.price.amount ?? 0) && (
+                {hasDiscount && (
                   <div className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded-md mb-3"
                        style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--primary)', color: 'var(--primary)' }}>
                     <span className="material-icons" style={{ fontSize: 14 }}>local_offer</span>

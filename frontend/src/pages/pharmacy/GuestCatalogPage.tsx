@@ -282,7 +282,7 @@ const GuestCatalogPage: React.FC = () => {
             const displayName = (p.name && p.name.trim()) ? p.name : ((p.title && String(p.title).trim()) ? String(p.title) : `Producto #${p.id}`);
             const basePrice = Number(p.price?.amount ?? 0);
             const salePrice = Number(p.price?.sale_amount ?? basePrice);
-            const hasDiscount = p.price?.sale_amount != null && salePrice < basePrice && basePrice > 0;
+            const hasDiscount = (p.price?.sale_active === true) && p.price?.sale_amount != null && salePrice < basePrice && basePrice > 0;
             const discountPct = hasDiscount ? Math.round(((basePrice - salePrice) / basePrice) * 100) : 0;
             return (
               <div key={p.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition" style={{ border: '1px solid var(--border)' }}>

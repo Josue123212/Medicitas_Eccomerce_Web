@@ -4,6 +4,24 @@ import { ecommerceAdminService } from '../../../services/ecommerceAdminService';
 import type { AdminPrice } from '../../../services/ecommerceAdminService';
 import { Pencil, Save } from 'lucide-react';
 
+const toLocalInput = (iso?: string | null) => {
+  try {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const y = d.getFullYear();
+    const m = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mm = pad(d.getMinutes());
+    return `${y}-${m}-${dd}T${hh}:${mm}`;
+  } catch { return ''; }
+};
+
+const toIso = (local?: string) => {
+  try { return local ? new Date(local).toISOString() : undefined; } catch { return undefined; }
+};
+
 const AdminPricesPage: React.FC = () => {
   const [items, setItems] = useState<AdminPrice[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,6 +81,7 @@ const AdminPricesPage: React.FC = () => {
         sale_amount: data.sale_amount == null || data.sale_amount === '' ? null : Number(data.sale_amount),
         is_active: !!data.is_active,
         valid_from: String(data.valid_from ?? new Date().toISOString()),
+        valid_until: toIso(data.valid_until as any) ?? (data.valid_until as any),
       });
       await load();
       setEditing(prev => { const c = { ...prev }; delete c[id]; return c; });
@@ -88,6 +107,8 @@ const AdminPricesPage: React.FC = () => {
                 <th className="px-4 py-2 text-left text-sm font-semibold">Moneda</th>
                 <th className="px-4 py-2 text-left text-sm font-semibold">Precio</th>
                 <th className="px-4 py-2 text-left text-sm font-semibold">Oferta</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold">Inicio oferta</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold">Fin oferta</th>
                 <th className="px-4 py-2 text-left text-sm font-semibold">Activo</th>
                 <th className="px-4 py-2 text-left text-sm font-semibold">Acciones</th>
               </tr>
@@ -122,6 +143,32 @@ const AdminPricesPage: React.FC = () => {
                         <input type="number" step="0.01" className="w-24 border rounded px-2 py-1" value={e.sale_amount as any ?? (p.sale_amount ?? '')} onChange={ev => updateField(p.id, 'sale_amount', ev.target.value)} />
                       ) : (
                         p.sale_amount ?? '—'
+                      )}
+                    </td>
+                    <td className="px-4 py-2">
+                      {isEditing ? (
+                        <input
+                          type="datetime-local"
+                          className="border rounded px-2 py-1"
+                          value={toLocalInput((e.valid_from as any) ?? p.valid_from)}
+                          onChange={ev => updateField(p.id, 'valid_from', ev.target.value)}
+                          disabled={((e.sale_amount as any) ?? p.sale_amount) == null || ((e.sale_amount as any) ?? p.sale_amount) === ''}
+                        />
+                      ) : (
+                        p.sale_amount != null ? new Date(p.valid_from).toLocaleString() : '—'
+                      )}
+                    </td>
+                    <td className="px-4 py-2">
+                      {isEditing ? (
+                        <input
+                          type="datetime-local"
+                          className="border rounded px-2 py-1"
+                          value={toLocalInput((e.valid_until as any) ?? (p.valid_until as any))}
+                          onChange={ev => updateField(p.id, 'valid_until', ev.target.value)}
+                          disabled={((e.sale_amount as any) ?? p.sale_amount) == null || ((e.sale_amount as any) ?? p.sale_amount) === ''}
+                        />
+                      ) : (
+                        p.sale_amount != null && p.valid_until ? new Date(p.valid_until).toLocaleString() : '—'
                       )}
                     </td>
                     <td className="px-4 py-2">

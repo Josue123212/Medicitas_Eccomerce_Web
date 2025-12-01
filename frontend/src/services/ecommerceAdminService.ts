@@ -19,6 +19,7 @@ export interface AdminPrice {
   sale_amount?: number | string | null;
   is_active: boolean;
   valid_from: string;
+  valid_until?: string | null;
 }
 
 export interface AdminInventory {

@@ -8,12 +8,15 @@ const useProducts = () => {
   const query = useQuery({
     queryKey: ['ecommerce', 'products', 'offers'],
     queryFn: () => ecommerceService.getProducts(),
-    staleTime: 2 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    retry: 1,
   });
   const all: Product[] = Array.isArray(query.data)
     ? (query.data as unknown as Product[])
     : (query.data?.results ?? []);
-  const products = all.filter(p => p?.price?.sale_amount != null);
+  const products = all.filter(p => p?.price?.sale_amount != null && p?.price?.sale_active === true);
   return { ...query, products } as const;
 };
 
@@ -101,7 +104,7 @@ const OffersPage: React.FC = () => {
               const src = img ? (img.startsWith('http') ? img : `${backendOrigin}${img}`) : null;
               const base = Number(p.price?.amount ?? 0);
               const sale = Number(p.price?.sale_amount ?? base);
-              const hasDiscount = p.price?.sale_amount != null && sale < base && base > 0;
+              const hasDiscount = (p.price?.sale_active === true) && p.price?.sale_amount != null && sale < base && base > 0;
               const discountPct = hasDiscount ? Math.round(((base - sale) / base) * 100) : 0;
               const displayName = (p.name && p.name.trim()) ? p.name : ((p.title && String(p.title).trim()) ? String(p.title) : `Producto #${p.id}`);
               return (
