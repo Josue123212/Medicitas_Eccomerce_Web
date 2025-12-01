@@ -1,6 +1,7 @@
 package com.farmacia.logistics.adapters.in.web;
 
 import com.farmacia.logistics.adapters.out.persistence.AuditActionRepository;
+import com.farmacia.logistics.adapters.out.persistence.AuditLogRepository;
 import com.farmacia.logistics.adapters.out.persistence.AuditRepository;
 import com.farmacia.logistics.adapters.out.persistence.MovementRepository;
 import com.farmacia.logistics.adapters.out.http.AdminInventoryClient;
@@ -26,13 +27,18 @@ public class AuditController {
     private final AuditRepository repo;
     private final AuditActionRepository actionRepo;
     private final MovementRepository movementRepo;
+    private final AuditLogRepository auditLogRepo;
     private final AppProperties props;
     private final AdminInventoryClient adminInventoryClient;
-    public AuditController(AuditRepository repo, AuditActionRepository actionRepo, MovementRepository movementRepo, AdminInventoryClient adminInventoryClient, AppProperties props) {
-        this.repo = repo; this.actionRepo = actionRepo; this.movementRepo = movementRepo; this.adminInventoryClient = adminInventoryClient; this.props = props; }
+    public AuditController(AuditRepository repo, AuditActionRepository actionRepo, MovementRepository movementRepo, AuditLogRepository auditLogRepo, AdminInventoryClient adminInventoryClient, AppProperties props) {
+        this.repo = repo; this.actionRepo = actionRepo; this.movementRepo = movementRepo; this.auditLogRepo = auditLogRepo; this.adminInventoryClient = adminInventoryClient; this.props = props; }
     @GetMapping
     public ResponseEntity<?> list() {
         return ResponseEntity.ok(actionRepo.findAll());
+    }
+    @GetMapping("/history")
+    public ResponseEntity<?> history() {
+        return ResponseEntity.ok(auditLogRepo.findAll());
     }
     @GetMapping("/summary")
     public ResponseEntity<?> summary(@RequestParam("productId") Long productId) {

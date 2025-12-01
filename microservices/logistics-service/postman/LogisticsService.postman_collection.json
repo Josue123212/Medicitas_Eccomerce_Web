@@ -1,0 +1,84 @@
+{
+  "info": {
+    "name": "Logistics Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "b6c0e8b1-0f9d-4a0a-9f52-logs-svc"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/actuator/health", "host": ["{{baseUrl}}"], "path": ["actuator","health"] }
+      }
+    },
+    {
+      "name": "Audits - History",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/audits/history", "host": ["{{baseUrl}}"], "path": ["audits","history"] }
+      }
+    },
+    {
+      "name": "Audits - Summary",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/audits/summary?productId={{productId}}", "host": ["{{baseUrl}}"], "path": ["audits","summary"], "query": [{"key":"productId","value":"{{productId}}"}] }
+      }
+    },
+    {
+      "name": "Audits - Create",
+      "request": {
+        "method": "POST",
+        "header": [ {"key":"Content-Type","value":"application/json"}, {"key":"X-Service-Key","value":"{{serviceKey}}"} ],
+        "body": { "mode": "raw", "raw": "{\n  \"subject\": \"block product 23\",\n  \"result\": \"ok\"\n}" },
+        "url": { "raw": "{{baseUrl}}/audits/create", "host": ["{{baseUrl}}"], "path": ["audits","create"] }
+      }
+    },
+    {
+      "name": "Order Webhook",
+      "request": {
+        "method": "POST",
+        "header": [ {"key":"Content-Type","value":"application/json"}, {"key":"X-Service-Key","value":"{{serviceKey}}"} ],
+        "body": { "mode": "raw", "raw": "{\n  \"type\": \"created\",\n  \"order_id\": 35,\n  \"items\": [{ \"product_id\": 23, \"quantity\": 1 }]\n}" },
+        "url": { "raw": "{{baseUrl}}/webhooks/order", "host": ["{{baseUrl}}"], "path": ["webhooks","order"] }
+      }
+    },
+    {
+      "name": "Agent - Execute",
+      "request": {
+        "method": "POST",
+        "header": [ {"key":"Content-Type","value":"application/json"} ],
+        "body": { "mode": "raw", "raw": "{\n  \"command\": \"bloquear producto 23 cantidad 1\"\n}" },
+        "url": { "raw": "{{baseUrl}}/agent/execute", "host": ["{{baseUrl}}"], "path": ["agent","execute"] }
+      }
+    },
+    {
+      "name": "Movements - Entry",
+      "request": {
+        "method": "POST",
+        "header": [ {"key":"Content-Type","value":"application/json"}, {"key":"X-Service-Key","value":"{{serviceKey}}"} ],
+        "body": { "mode": "raw", "raw": "{\n  \"productId\": {{productId}},\n  \"qty\": 5\n}" },
+        "url": { "raw": "{{baseUrl}}/movements/entry", "host": ["{{baseUrl}}"], "path": ["movements","entry"] }
+      }
+    },
+    {
+      "name": "Movements - Exit",
+      "request": {
+        "method": "POST",
+        "header": [ {"key":"Content-Type","value":"application/json"}, {"key":"X-Service-Key","value":"{{serviceKey}}"} ],
+        "body": { "mode": "raw", "raw": "{\n  \"productId\": {{productId}},\n  \"qty\": 2\n}" },
+        "url": { "raw": "{{baseUrl}}/movements/exit", "host": ["{{baseUrl}}"], "path": ["movements","exit"] }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8081" },
+    { "key": "baseUri", "value": "http://localhost:8081" },
+    { "key": "serviceKey", "value": "admin-agent-key" },
+    { "key": "productId", "value": "23" }
+  ]
+}

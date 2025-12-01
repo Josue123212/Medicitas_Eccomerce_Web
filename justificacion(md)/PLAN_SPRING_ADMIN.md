@@ -42,6 +42,15 @@
 3. Agentes y LLM
    - `AgentController` (`/agent/execute`) que mapea comandos de lenguaje natural a casos de uso.
    - Comandos iniciales: activar oferta, ajustar mínimo, reservar stock.
+   - Configuración Local AI (Msty) para LLM:
+     - Ruta de modelos: `C:\Users\Usuario\AppData\Local\Programs\MstyStudio\localai\models`
+     - Estado del servicio: En ejecución
+     - Endpoint local: `http://localhost:11964` (OpenAI‑compatible)
+     - Versión del servicio: `0.13.0`
+     - Integración:
+       - En desarrollo (host): `LLM_BASE_URL=http://localhost:11964`
+       - En contenedor: `LLM_BASE_URL=http://host.docker.internal:11964`
+       - Selección de modelo: `LLM_MODEL=<id>` obtenido de `GET /v1/models`
 4. Integración Django
    - Webhooks: `order.created`, `order.confirmed`, `order.cancelled`.
    - Cliente HTTP en Spring Boot para activar oferta única vía admin endpoint.
@@ -74,13 +83,21 @@
 - Al finalizar cada bloque, se marcarán completados y se añadirá resumen en `justificacion(md)/TASK_LIST.md`.
 
 ## Checklist de ejecución
-- [ ] Dockerfiles y `docker-compose` creados
-- [ ] Esqueleto Spring Boot (hexagonal) y repos JPA
-- [ ] Endpoint `/agent/execute` y comandos básicos
-- [ ] Webhooks de orden conectados
-- [ ] Reglas de inventario aplicadas
-- [ ] Auditorías iniciales
-- [ ] Chatbot Admin UI
-- [ ] Pruebas y validación
-- [ ] Observabilidad y seguridad
-- [ ] Despliegue y revisión final
+- [x] Dockerfiles y `docker-compose` creados
+- [x] Endpoint `/agent/execute` y comandos básicos
+- [x] Configuración LLM Local AI (Msty) con endpoint `http://localhost:11964` y versión `0.13.0`
+- [x] Esqueleto Spring Boot (hexagonal) y repos JPA
+- [x] Webhooks de orden conectados
+- [x] Reglas de inventario aplicadas
+- [x] Auditorías iniciales
+- [x] Chatbot Admin UI
+- [x] Pruebas y validación
+- [x] Observabilidad y seguridad
+- [x] Despliegue y revisión final
+
+## Estado final
+- Módulos implementados y verificados en entorno de desarrollo.
+- LLM operativo con `LLM_BASE_URL` configurado y comandos ejecutando casos de uso.
+- Webhooks de órdenes integrados; inventario se actualiza según eventos `created`, `confirmed` y `cancelled`.
+- Servicios exponen health y métricas; seguridad mediante API Key/JWT aplicada en acciones sensibles.
+- Documentación actualizada y checklist completado.
