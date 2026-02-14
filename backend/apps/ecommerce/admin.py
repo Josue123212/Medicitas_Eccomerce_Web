@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     Category, Product, Price, ProductImage, Inventory,
-    Cart, CartItem, Address, Order, OrderItem, Payment
+    Cart, CartItem, Address, Order, OrderItem, Payment, Favorite
 )
 
 
@@ -67,3 +67,9 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ("order", "provider", "status", "external_id", "created_at")
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "product", "created_at")
+    search_fields = ("user__username", "product__name")

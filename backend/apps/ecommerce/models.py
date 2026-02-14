@@ -7,7 +7,7 @@ class Category(models.Model):
     name = models.CharField(max_length=120)
     slug = models.SlugField(unique=True)
     description = models.TextField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
@@ -35,6 +35,7 @@ class Price(models.Model):
     is_active = models.BooleanField(default=True)
     # Campo existente en la base: NOT NULL
     valid_from = models.DateTimeField(default=timezone.now)
+    valid_until = models.DateTimeField(null=True, blank=True)
 
 
 class ProductImage(models.Model):
@@ -58,6 +59,7 @@ class Inventory(models.Model):
 
 class Cart(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='carts')
+    status = models.CharField(max_length=30, default='active')
     updated_at = models.DateTimeField(auto_now=True)
 
 
@@ -66,6 +68,17 @@ class CartItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        try:
+            if self.unit_price is not None and self.quantity is not None:
+                self.subtotal = self.unit_price * self.quantity
+        except Exception:
+            pass
+        super().save(*args, **kwargs)
 
 
 class Address(models.Model):
@@ -81,6 +94,7 @@ class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     status = models.CharField(max_length=30, default='created')
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    currency = models.CharField(max_length=8, default='USD')
     created_at = models.DateTimeField(auto_now_add=True)
 
 
@@ -89,6 +103,15 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    def save(self, *args, **kwargs):
+        try:
+            if self.unit_price is not None and self.quantity is not None:
+                self.subtotal = self.unit_price * self.quantity
+        except Exception:
+            pass
+        super().save(*args, **kwargs)
 
 
 class Payment(models.Model):
@@ -97,3 +120,31 @@ class Payment(models.Model):
     status = models.CharField(max_length=30, default='succeeded')  # simulamos éxito
     external_id = models.CharField(max_length=120, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='favorites')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='favorited_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'product')
+
+
+class OfferSlide(models.Model):
+    title = models.CharField(max_length=200)
+    subtitle = models.CharField(max_length=300, blank=True)
+    badge = models.CharField(max_length=50, blank=True, default='Oferta')
+    cta_text = models.CharField(max_length=80, blank=True, default='Ver productos en oferta')
+    cta_link = models.CharField(max_length=200, blank=True, default='/pharmacy/offers')
+    image = models.ImageField(upload_to='offers/', blank=True, null=True)
+    position = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['position', 'id']
+
+    def __str__(self):
+        return self.title

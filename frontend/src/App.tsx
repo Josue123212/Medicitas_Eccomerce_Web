@@ -62,6 +62,22 @@ import PharmacyLandingPage from './pages/pharmacy/PharmacyLandingPage';
 import PharmacyLoginPage from './pages/pharmacy/PharmacyLoginPage';
 import PharmacyRegisterPage from './pages/pharmacy/PharmacyRegisterPage';
 import PharmacyCatalogGate from './pages/pharmacy/PharmacyCatalogGate';
+import PharmacyOrdersPage from './pages/pharmacy/PharmacyOrdersPage';
+import PharmacyOrderDetailPage from './pages/pharmacy/PharmacyOrderDetailPage';
+import PharmacyCartPage from './pages/pharmacy/PharmacyCartPage';
+import PaymentSuccessPage from './pages/pharmacy/PaymentSuccessPage';
+import PaymentCancelPage from './pages/pharmacy/PaymentCancelPage';
+import OffersPage from './pages/pharmacy/OffersPage';
+import PharmacyProductDetailPage from './pages/pharmacy/PharmacyProductDetailPage';
+// Admin E-commerce Pages
+import AdminEcommerceHome from './pages/admin/ecommerce/AdminEcommerceHome';
+import AdminProductsPage from './pages/admin/ecommerce/AdminProductsPage';
+import AdminInventoryPage from './pages/admin/ecommerce/AdminInventoryPage';
+import AdminPricesPage from './pages/admin/ecommerce/AdminPricesPage';
+import AdminCategoriesPage from './pages/admin/ecommerce/AdminCategoriesPage';
+import AdminOffersPage from './pages/admin/ecommerce/AdminOffersPage';
+import AdminAgentPage from './pages/admin/ecommerce/AdminAgentPage';
+import AdminAuditsPage from './pages/admin/ecommerce/AdminAuditsPage';
 
 
 /**
@@ -157,8 +173,15 @@ const AppRoutes: React.FC = () => {
           {/* 🛍️ RUTAS FARMACIA - Accesibles para invitados y usuarios */}
           <Route path="/pharmacy" element={<PharmacyLandingPage />} />
           <Route path="/pharmacy/catalog" element={<PharmacyCatalogGate />} />
+          <Route path="/pharmacy/offers" element={<OffersPage />} />
+          <Route path="/pharmacy/product/:id" element={<PharmacyProductDetailPage />} />
           <Route path="/pharmacy/login" element={<PharmacyLoginPage />} />
           <Route path="/pharmacy/register" element={<PharmacyRegisterPage />} />
+          <Route path="/pharmacy/orders" element={<PharmacyOrdersPage />} />
+          <Route path="/pharmacy/orders/:id" element={<PharmacyOrderDetailPage />} />
+          <Route path="/pharmacy/cart" element={<PharmacyCartPage />} />
+          <Route path="/pharmacy/success" element={<PaymentSuccessPage />} />
+          <Route path="/pharmacy/cancel" element={<PaymentCancelPage />} />
           
           {/* 🔐 RUTAS PROTEGIDAS POR ROL - SuperAdmin y Admin */}
           <Route 
@@ -168,6 +191,72 @@ const AppRoutes: React.FC = () => {
                 <DashboardPage />
               </ProtectedRoute>
             } 
+          />
+
+          {/* 🛍️ E‑COMMERCE ADMIN */}
+          <Route 
+            path="/admin/ecommerce" 
+            element={
+              <ProtectedRoute requiredRole={['superadmin', 'admin']}>
+                <AdminEcommerceHome />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/admin/ecommerce/products" 
+            element={
+              <ProtectedRoute requiredRole={['superadmin', 'admin']}>
+                <AdminProductsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/admin/ecommerce/inventory" 
+            element={
+              <ProtectedRoute requiredRole={['superadmin', 'admin']}>
+                <AdminInventoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/admin/ecommerce/prices" 
+            element={
+              <ProtectedRoute requiredRole={['superadmin', 'admin']}>
+                <AdminPricesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/admin/ecommerce/offers" 
+            element={
+              <ProtectedRoute requiredRole={['superadmin', 'admin']}>
+                <AdminOffersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/admin/ecommerce/agent" 
+            element={
+              <ProtectedRoute requiredRole={['superadmin', 'admin']}>
+                <AdminAgentPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/admin/ecommerce/audits" 
+            element={
+              <ProtectedRoute requiredRole={['superadmin', 'admin']}>
+                <AdminAuditsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/admin/ecommerce/categories" 
+            element={
+              <ProtectedRoute requiredRole={['superadmin', 'admin']}>
+                <AdminCategoriesPage />
+              </ProtectedRoute>
+            }
           />
           
           <Route 

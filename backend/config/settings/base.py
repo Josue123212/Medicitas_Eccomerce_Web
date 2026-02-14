@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from decouple import config
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -53,6 +54,9 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'apps.core.middleware.RoleBasedRateLimitMiddleware',
+    'apps.core.middleware.SecurityHeadersMiddleware',
+    'apps.core.middleware.RoleBasedLoggingMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -112,6 +116,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom User Model
 AUTH_USER_MODEL = 'users.User'
 
+# Ofertas
+from datetime import timedelta
+OFFER_DEFAULT_DURATION_DAYS = config('OFFER_DEFAULT_DURATION_DAYS', default=7, cast=int)
+
 # Django REST Framework configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -124,6 +132,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.CustomPageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
 }
 
 # CORS configuration
@@ -135,6 +148,11 @@ CORS_ALLOWED_ORIGINS = config(
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = False  # Seguridad: solo permitir orígenes específicos
+
+# Permitir encabezado personalizado para integración de servicios
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'x-service-key'
+]
 
 # Simple JWT configuration
 from datetime import timedelta
@@ -213,16 +231,16 @@ CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
 # Para desarrollo: usar console backend (comentado para usar Gmail)
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# SMTP Configuration para Gmail (ACTIVADO)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'josue.choquepuma@tecsup.edu.pe'
-EMAIL_HOST_PASSWORD = 'juvz zunn ingu czjj'
+# SMTP Configuration (por entorno)
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 # Email Settings
-DEFAULT_FROM_EMAIL = 'Sistema de Citas Médicas <noreply@citasmedicas.com>'
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Sistema de Citas Médicas <noreply@citasmedicas.com>')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 EMAIL_SUBJECT_PREFIX = '[Citas Médicas] '
 
@@ -314,3 +332,57 @@ SPECTACULAR_SETTINGS = {
         'pathInMiddlePanel': True,
     },
 }
+
+# Security headers
+SECURITY_HEADERS = {
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+}
+
+# Rate limiting (per rol por minuto)
+RATE_LIMIT_SETTINGS = {
+    'ENABLED': True,
+    'EXEMPT_PATHS': [
+        '/api/auth/', '/api/users/auth/', '/admin/',
+        '/api/ecommerce/products/', '/api/ecommerce/categories/', '/api/ecommerce/offers/'
+    ],
+    'RATE_LIMITS': {
+        'admin': 1000,
+        'doctor': 300,
+        'secretary': 150,
+        'patient': 200,
+        'anonymous': 150,
+    },
+}
+
+# Audit settings
+AUDIT_SETTINGS = {
+    'ENABLED': True,
+    'LOG_ANONYMOUS_USERS': True,
+    'LOG_GET_REQUESTS': False,
+    'LOG_SENSITIVE_DATA': False,
+    'SENSITIVE_FIELDS': ['password', 'token', 'secret', 'key', 'auth'],
+    'CRITICAL_RESOURCES': ['users', 'admin', 'system'],
+}
+
+# Middleware logging settings
+MIDDLEWARE_LOGGING = {
+    'LOG_REQUESTS': True,
+    'LOG_RESPONSES': True,
+    'LOG_PERFORMANCE': True,
+    'PERFORMANCE_THRESHOLD_MS': 1000,
+    'LOG_RATE_LIMIT_VIOLATIONS': True,
+    'LOG_SECURITY_EVENTS': True,
+}
+
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
+STRIPE_CURRENCY = config('STRIPE_CURRENCY', default='USD')
+
+# Local AI Service (Msty Studio)
+LOCAL_AI_ENDPOINT = config('LOCAL_AI_ENDPOINT', default='http://localhost:11964')
+LOCAL_AI_DEFAULT_MODEL = config('LOCAL_AI_DEFAULT_MODEL', default='')
+LLM_BASE_URL = config('LLM_BASE_URL', default=LOCAL_AI_ENDPOINT)
+LLM_API_KEY = config('LLM_API_KEY', default='')

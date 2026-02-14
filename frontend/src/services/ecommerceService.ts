@@ -36,6 +36,18 @@ export interface ProductFilters {
   page?: number;
 }
 
+export interface OfferSlide {
+  id: number;
+  title: string;
+  subtitle?: string;
+  badge?: string;
+  ctaText?: string;
+  ctaLink?: string;
+  image?: string | null;
+  position: number;
+  is_active: boolean;
+}
+
 export const ecommerceService = {
   getProducts: async (filters?: ProductFilters): Promise<PaginatedResponse<Product>> => {
     const params: Record<string, string | number> = {};
@@ -49,10 +61,81 @@ export const ecommerceService = {
     return apiHelpers.get<Product>(`/ecommerce/products/${id}/`);
   },
 
+  getInventory: async (productId: number): Promise<{ stock: number; reserved_stock: number; min_stock: number; location: string }> => {
+    return apiHelpers.get<{ stock: number; reserved_stock: number; min_stock: number; location: string }>(`/ecommerce/inventory/${productId}/`);
+  },
+
   getCategories: async (): Promise<Category[]> => {
     const res = await apiHelpers.get<PaginatedResponse<Category>>('/ecommerce/categories/');
     return Array.isArray(res as any) ? (res as any as Category[]) : (res?.results ?? []);
   },
+
+  getCart: async (): Promise<any> => {
+    return apiHelpers.get<any>('/ecommerce/cart/');
+  },
+
+  addCartItem: async (productId: number, quantity: number = 1): Promise<any> => {
+    return apiHelpers.post<any>('/ecommerce/cart/items/', { product_id: productId, quantity });
+  },
+
+  updateCartItem: async (itemId: number, quantity: number): Promise<any> => {
+    return apiHelpers.patch<any>(`/ecommerce/cart-items/${itemId}/`, { quantity });
+  },
+
+  removeCartItem: async (itemId: number): Promise<any> => {
+    return apiHelpers.delete<any>(`/ecommerce/cart-items/${itemId}/`);
+  },
+
+  clearCart: async (): Promise<void> => {
+    await apiHelpers.post<void>('/ecommerce/cart/clear/', {});
+  },
+
+  getFavorites: async (): Promise<any[]> => {
+    const res = await apiHelpers.get<PaginatedResponse<any>>('/ecommerce/favorites/');
+    return Array.isArray(res as any) ? (res as any as any[]) : (res?.results ?? []);
+  },
+
+  addFavorite: async (productId: number): Promise<any> => {
+    return apiHelpers.post<any>('/ecommerce/favorites/', { product: productId });
+  },
+
+  removeFavorite: async (favoriteId: number): Promise<any> => {
+    return apiHelpers.delete<any>(`/ecommerce/favorites/${favoriteId}/`);
+  },
+
+  getOrders: async (): Promise<any[]> => {
+    const res = await apiHelpers.get<PaginatedResponse<any>>('/ecommerce/orders/');
+    return Array.isArray(res as any) ? (res as any as any[]) : (res?.results ?? []);
+  },
+
+  getOrder: async (id: number): Promise<any> => {
+    return apiHelpers.get<any>(`/ecommerce/orders/${id}/`);
+  },
+
+  createStripePaymentIntent: async (): Promise<{ client_secret: string; order: any }> => {
+    return apiHelpers.post<{ client_secret: string; order: any }>(`/ecommerce/checkout/stripe/`, {});
+  },
+
+  confirmStripePayment: async (order_id: number, payment_intent_id: string): Promise<{ order: any; payment: any }> => {
+    return apiHelpers.post<{ order: any; payment: any }>(`/ecommerce/stripe/confirm/`, { order_id, payment_intent_id });
+  },
+
+  getOffers: async (): Promise<OfferSlide[]> => {
+    const res = await apiHelpers.get<PaginatedResponse<any>>('/ecommerce/offers/');
+    const list: any[] = Array.isArray(res as any) ? (res as any as any[]) : ((res as any)?.results ?? []);
+    return list.map((it) => ({
+      id: it.id,
+      title: String(it.title || ''),
+      subtitle: it.subtitle ?? '',
+      badge: it.badge ?? 'Oferta',
+      ctaText: it.cta_text ?? it.ctaText ?? 'Ver productos en oferta',
+      ctaLink: it.cta_link ?? it.ctaLink ?? '/pharmacy/offers',
+      image: it.image ?? null,
+      position: Number(it.position ?? 0),
+      is_active: Boolean(it.is_active ?? true),
+    })) as OfferSlide[];
+  },
+
 };
 
 export default ecommerceService;

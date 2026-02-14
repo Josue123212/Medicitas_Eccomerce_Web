@@ -18,10 +18,10 @@ const FloatingAppointmentCTA: React.FC = () => {
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [position, setPosition] = useState<{ x: number; y: number }>({ x: 20, y: 20 });
   const [dragMoved, setDragMoved] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Mostrar solo si autenticado y rol cliente
-  const canShow = isAuthenticated && user?.role === 'client' && visible;
+  const canShow = isAuthenticated && visible;
 
   useEffect(() => {
     const stored = localStorage.getItem('hideAppointmentCTA');
@@ -69,8 +69,8 @@ const FloatingAppointmentCTA: React.FC = () => {
   }, [isDragging, dragStart, position]);
 
   const handleClick = () => {
-    if (dragMoved) return; // no click si fue drag
-    navigate('/client/appointments', { state: { openModal: true } });
+    if (dragMoved) return;
+    setShowInfo((s) => !s);
   };
 
   const handleClose = () => {
@@ -90,7 +90,7 @@ const FloatingAppointmentCTA: React.FC = () => {
       className="fixed z-50 shadow-lg cursor-grab active:cursor-grabbing"
       style={{
         bottom: `${position.y}px`,
-        right: `${position.x}px`,
+        left: `${position.x}px`,
         background: 'linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary), black 20%))',
         color: 'var(--text-on-primary)',
         borderRadius: 16,
@@ -98,21 +98,38 @@ const FloatingAppointmentCTA: React.FC = () => {
       }}
     >
       <div className="flex items-center gap-3 pl-3 pr-2 py-2">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'color-mix(in srgb, var(--primary), white 20%)' }}>
+        <div className="w-9 h-9 rounded-xl relative flex items-center justify-center" style={{ backgroundColor: 'color-mix(in srgb, var(--primary), white 20%)' }}>
           <span className="material-icons" style={{ fontSize: 20, color: 'var(--text-on-primary)' }}>calendar_today</span>
+          <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full" style={{ backgroundColor: '#ff4757', border: '2px solid white' }}></span>
         </div>
-        <div className="pr-2">
+        <div className="pr-2" style={{ display: showInfo ? 'block' : 'none' }}>
           <div className="text-sm font-semibold">Ya eres parte de la familia MediCitas</div>
-          <div className="text-xs opacity-90">Reserva tu próxima cita</div>
+          <div className="text-xs opacity-90">Reserva tu próxima cita 
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const role = user?.role;
+                const target = role === 'doctor' ? '/doctor/appointments' : role === 'secretary' ? '/secretary/appointments' : '/client/appointments';
+                const state = role === 'client' ? { openModal: true } : undefined;
+                navigate(target, { state });
+              }}
+              className="ml-2 px-2 py-1 rounded text-xs"
+              style={{ border: '1px solid var(--border)', color: 'var(--primary)', backgroundColor: 'var(--surface)' }}
+            >
+              Ir
+            </button>
+          </div>
         </div>
-        <button
-          aria-label="Cerrar recordatorio"
-          onClick={(e) => { e.stopPropagation(); handleClose(); }}
-          className="w-7 h-7 rounded-lg flex items-center justify-center"
-          style={{ backgroundColor: 'color-mix(in srgb, var(--primary), black 20%)' }}
-        >
-          <span className="material-icons" style={{ fontSize: 18, color: 'var(--text-on-primary)' }}>close</span>
-        </button>
+        {showInfo && (
+          <button
+            aria-label="Cerrar recordatorio"
+            onClick={(e) => { e.stopPropagation(); handleClose(); }}
+            className="w-7 h-7 rounded-lg flex items-center justify-center"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--primary), black 20%)' }}
+          >
+            <span className="material-icons" style={{ fontSize: 18, color: 'var(--text-on-primary)' }}>close</span>
+          </button>
+        )}
       </div>
     </div>
   );

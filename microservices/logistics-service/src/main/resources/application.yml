@@ -1,0 +1,39 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: logistics-service
+  datasource:
+    url: jdbc:h2:mem:logistics;DB_CLOSE_DELAY=-1
+    driverClassName: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate.format_sql: true
+
+app:
+  backendUrl: ${BACKEND_URL:http://127.0.0.1:8000/api}
+  serviceKey: ${SERVICE_API_KEY:admin-agent-key}
+  llm:
+    baseUrl: ${LLM_BASE_URL:http://localhost:11964}
+    model: ${LLM_MODEL:admin}
+    apiKey: ${LLM_API_KEY:}
+backend:
+  url: ${BACKEND_URL:http://localhost:8000/api}
+service:
+  key: ${SERVICE_API_KEY:admin-agent-key}
+llm:
+  base_url: ${LLM_BASE_URL:http://localhost:11964}
+  model: ${LLM_MODEL:admin}
+  api_key: ${LLM_API_KEY:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

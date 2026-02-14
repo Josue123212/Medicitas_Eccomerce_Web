@@ -193,7 +193,15 @@ export const apiHelpers = {
   
   // POST request con tipado
   post: <T = unknown>(url: string, data?: unknown): Promise<T> => {
-    return api.post(url, data).then(response => response.data);
+    const attempt = () => api.post(url, data).then(response => response.data);
+    return attempt().catch(async (err) => {
+      if (err?.response?.status === 429) {
+        const ms = 500 + Math.floor(Math.random() * 300);
+        await new Promise(res => setTimeout(res, ms));
+        return attempt();
+      }
+      throw err;
+    });
   },
   
   // PUT request con tipado

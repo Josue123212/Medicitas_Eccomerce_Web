@@ -66,6 +66,9 @@ class RoleBasedLoggingMiddleware(MiddlewareMixin):
         return None
 
     def process_response(self, request, response):
+        # Excluir webhooks y rutas públicas sin autenticación del audit log
+        if request.path.startswith('/api/ecommerce/webhooks'):
+            return response
         audit_settings = get_audit_settings()
 
         if not audit_settings.get('ENABLED', True):
@@ -117,7 +120,7 @@ class RoleBasedLoggingMiddleware(MiddlewareMixin):
                     request_data = {'error': 'Could not parse request data'}
 
             AuditLog.objects.create(
-                user=request.user,
+                user=request.user if hasattr(request, 'user') and getattr(request.user, 'is_authenticated', False) else None,
                 action=self.get_action_name(request),
                 resource=self.get_resource_name(request.path),
                 resource_id=self.get_resource_id(request.path),
@@ -129,11 +132,11 @@ class RoleBasedLoggingMiddleware(MiddlewareMixin):
                 response_status=response.status_code,
             )
 
+            username = getattr(request.user, 'username', 'anonymous') if hasattr(request, 'user') else 'anonymous'
+            role = getattr(request.user, 'role', 'anonymous') if hasattr(request, 'user') else 'anonymous'
             action_logger.info(
-                f"User {request.user.username} ({request.user.role}) "
-                f"performed {request.method} on {request.path} "
-                f"from {request.audit_data['ip_address']} "
-                f"- Status: {response.status_code}"
+                f"User {username} ({role}) performed {request.method} on {request.path} "
+                f"from {request.audit_data['ip_address']} - Status: {response.status_code}"
             )
 
         except Exception as e:
@@ -187,6 +190,7 @@ class RoleBasedRateLimitMiddleware(MiddlewareMixin):
     EXEMPT_PATHS = [
         '/api/auth/login/',
         '/api/auth/refresh/',
+        '/api/users/auth/',
         '/api/health/',
         '/admin/',
     ]
@@ -255,4 +259,3 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
             if header_value:
                 response[header_name] = header_value
         return response
-

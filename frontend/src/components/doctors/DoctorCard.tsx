@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader } from '../ui/card';
-import { Button } from '../ui/button';
+import { Card, CardContent, CardHeader } from '../ui/Card';
+import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { 
   UserIcon,

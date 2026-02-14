@@ -7,8 +7,8 @@ import { z } from 'zod';
 import { X, User, Stethoscope, Clock, AlertCircle, CheckCircle, Save } from 'lucide-react';
 import { doctorService } from '../../services/doctorService';
 import type { Doctor } from '../../types';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
 // 🎯 OBJETIVO: Modal para editar información de doctores existentes

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, useCallback, u
 import type { ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
 import { authService, tokenUtils } from '../services/authService';
+import { ecommerceService } from '../services/ecommerceService';
 import type { User, LoginData, RegisterData, UpdateProfileData, ChangePasswordData } from '../types/auth';
 
 // Tipos del contexto
@@ -130,6 +131,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const clearAuthData = useCallback(() => {
     tokenUtils.clearTokens();
     localStorage.removeItem('user');
+    try { localStorage.setItem('clearCartOnNextLogin', 'true'); } catch {}
     dispatch({ type: 'LOGOUT' });
     console.log('🧹 Datos de autenticación limpiados');
   }, []);
@@ -149,6 +151,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       tokenUtils.saveTokens(authResponse.accessToken, authResponse.refreshToken);
       localStorage.setItem('user', JSON.stringify(authResponse.user));
+      try { localStorage.removeItem('hideAppointmentCTA'); } catch {}
       dispatch({ type: 'AUTH_SUCCESS', payload: authResponse.user });
       console.log('✅ Token renovado exitosamente');
     } catch (refreshError) {
@@ -310,9 +313,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       tokenUtils.saveTokens(authResponse.accessToken, authResponse.refreshToken);
       localStorage.setItem('user', JSON.stringify(authResponse.user));
+      try { localStorage.removeItem('hideAppointmentCTA'); } catch {}
       
       dispatch({ type: 'AUTH_SUCCESS', payload: authResponse.user });
       
+      // Limpiar carrito si se marcó al cerrar sesión o expiración
+      try {
+        const flag = localStorage.getItem('clearCartOnNextLogin');
+        if (flag === 'true') {
+          await ecommerceService.clearCart();
+          localStorage.removeItem('clearCartOnNextLogin');
+          console.log('🧹 Carrito limpiado post-login');
+        }
+      } catch {}
+
       toast.success(`¡Bienvenido/a, ${authResponse.user.firstName || 'Usuario'}!`);
     } catch (error: any) {
       console.error('❌ Error en login:', error);
@@ -352,15 +366,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Función de logout
   const logout = (): void => {
     try {
+      // Intentar limpiar carrito antes de cerrar sesión
+      ecommerceService.clearCart().catch(() => {});
       authService.logout();
       tokenUtils.clearTokens();
       localStorage.removeItem('user');
+      try { localStorage.setItem('clearCartOnNextLogin', 'true'); } catch {}
       dispatch({ type: 'LOGOUT' });
       toast.success('Sesión cerrada exitosamente');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
       tokenUtils.clearTokens();
       localStorage.removeItem('user');
+      try { localStorage.setItem('clearCartOnNextLogin', 'true'); } catch {}
       dispatch({ type: 'LOGOUT' });
     }
   };

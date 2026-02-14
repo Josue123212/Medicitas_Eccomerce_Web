@@ -6,7 +6,7 @@ import { X, User, Stethoscope, Clock, DollarSign, Calendar, Phone, Mail, MapPin,
 import { doctorService } from '../../services/doctorService';
 import type { Doctor } from '../../types';
 import { Badge } from '../ui/Badge';
-import { Button } from '../ui/button';
+import { Button } from '../ui/Button';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
 // 🎯 OBJETIVO: Modal para mostrar el perfil completo del doctor
